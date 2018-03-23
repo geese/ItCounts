@@ -6,6 +6,7 @@
 
     <include
         layout="@layout/calendar_day"
+        android:id="@+id/day_0"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_margin="4dp"
@@ -13,6 +14,7 @@
 
     <include
         layout="@layout/calendar_day"
+        android:id="@+id/day_1"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_margin="4dp"
@@ -20,6 +22,7 @@
 
     <include
         layout="@layout/calendar_day"
+        android:id="@+id/day_2"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_margin="4dp"
@@ -27,6 +30,7 @@
 
     <include
         layout="@layout/calendar_day"
+        android:id="@+id/day_3"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_margin="4dp"
@@ -34,6 +38,7 @@
 
     <include
         layout="@layout/calendar_day"
+        android:id="@+id/day_4"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_margin="4dp"
@@ -41,6 +46,7 @@
 
     <include
         layout="@layout/calendar_day"
+        android:id="@+id/day_5"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_margin="4dp"
@@ -48,6 +54,7 @@
 
     <include
         layout="@layout/calendar_day"
+        android:id="@+id/day_6"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_margin="4dp"
