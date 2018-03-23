@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initThingMonths();
+
+
         recyclerView = findViewById(R.id.recyclerView);
         adapter = new ThingMonthAdapter(thingMonths, getApplicationContext());
         LinearLayoutManager horizLayoutMgr =
@@ -65,5 +67,6 @@ public class MainActivity extends AppCompatActivity {
         thingMonths.get(0).addThingSet(4).setReps(2);
         thingMonths.get(0).addThingSet(4).setReps(6);
         thingMonths.get(0).addThingSet(6).setReps(3);
+        thingMonths.get(1).addThingSet(17).setReps(15);
     }
 }
