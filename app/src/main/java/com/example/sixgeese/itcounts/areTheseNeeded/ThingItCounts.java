@@ -1,4 +1,6 @@
-package com.example.sixgeese.itcounts.model;
+package com.example.sixgeese.itcounts.areTheseNeeded;
+
+import com.example.sixgeese.itcounts.model.ThingSet;
 
 import java.util.ArrayList;
 

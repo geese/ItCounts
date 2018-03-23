@@ -14,12 +14,23 @@ public class ThingSet {
         this.date = date;
     }
 
+    public ThingSet(int date){
+        this.date = date;
+    }
+
     public int getReps() {
         return reps;
     }
 
     public void setReps(int reps) {
         this.reps = reps;
+    }
+
+    public void incrementReps(int howMany) {
+        this.reps += howMany;
+    }
+    public void decrementReps(int howMany) {
+        this.reps -= howMany;
     }
 
     public int getYear() {
