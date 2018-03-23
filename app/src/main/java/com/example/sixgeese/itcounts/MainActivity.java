@@ -55,11 +55,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void initThingMonths() {
         thingMonths = new ArrayList<>();
-        thingMonths.add(new ThingMonth(2017, 10));
-        thingMonths.add(new ThingMonth(2017, 11));
-        thingMonths.add(new ThingMonth(2017, 12));
-        thingMonths.add(new ThingMonth(2018, 1));
-        thingMonths.add(new ThingMonth(2018, 2));
-        thingMonths.add(new ThingMonth(2018, 3));
+        thingMonths.add(new ThingMonth("Take Vitamins", 2017, 10));
+        thingMonths.add(new ThingMonth("Take Vitamins", 2017, 11));
+        thingMonths.add(new ThingMonth("Take Vitamins", 2017, 12));
+        thingMonths.add(new ThingMonth("Take Vitamins", 2018, 1));
+        thingMonths.add(new ThingMonth("Take Vitamins", 2018, 2));
+        thingMonths.add(new ThingMonth("Take Vitamins", 2018, 3));
+
+        thingMonths.get(0).addThingSet(4).setReps(2);
+        thingMonths.get(0).addThingSet(4).setReps(6);
+        thingMonths.get(0).addThingSet(6).setReps(3);
     }
 }
