@@ -1,4 +1,4 @@
-package com.example.sixgeese.itcounts.areTheseNeeded;
+package com.example.sixgeese.itcounts.model;
 
 import com.example.sixgeese.itcounts.model.ThingSet;
 
@@ -8,12 +8,11 @@ import java.util.ArrayList;
  * Created by sixge on 3/22/2018.
  */
 
-public class ThingItCounts {
+public class Thing {
 
     private String title;
-    private ArrayList<ThingSet> sets;
 
-    public ThingItCounts(String title){
+    public Thing(String title){
         this.title = title;
     }
 

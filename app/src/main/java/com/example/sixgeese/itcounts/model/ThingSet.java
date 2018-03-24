@@ -6,7 +6,7 @@ package com.example.sixgeese.itcounts.model;
 
 public class ThingSet {
     private int reps;
-    private int year, month, date;
+    private int year, month, date, id;
 
     public ThingSet(int year, int month, int date){
         this.year = year;
@@ -16,6 +16,14 @@ public class ThingSet {
 
     public ThingSet(int date){
         this.date = date;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getReps() {

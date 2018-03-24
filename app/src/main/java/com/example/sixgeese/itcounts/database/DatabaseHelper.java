@@ -1,16 +1,17 @@
 package com.example.sixgeese.itcounts.database;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
-import com.example.sixgeese.itcounts.areTheseNeeded.ThingItCounts;
+import com.example.sixgeese.itcounts.model.Thing;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.example.sixgeese.itcounts.database.DatabaseConstantsAndStrings.*;
 
@@ -22,10 +23,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = DatabaseHelper.class.getSimpleName();
 
-    private SQLiteDatabase database; //class level
+    private SQLiteDatabase mWritableDB;
+    private SQLiteDatabase mReadableDB;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        fillDatabaseWithData();
     }
 
 
@@ -40,38 +43,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 e.printStackTrace();
             }
         }
-        fillDatabaseWithData(db);
     }
 
-    public SQLiteDatabase open() {
-        database = getWritableDatabase();
-        return database;
-    }
 
-    public void close() {
-        if (database != null)
-            database.close();
-    }
 
-    public Cursor execQuery(String query) {
-        Cursor cursor = null;
-        if (open() != null) {
-            cursor = database.rawQuery(query, null);
-        }
-        return cursor;
-    }
+
 
 
    /*    INSERT methods   */
    public long insertThing(String title)throws Exception {
        long rowID = -1;
+       rowID = getThingID(title);
 
        ContentValues newThing = new ContentValues();
        newThing.put(COLUMN_TITLE, title.trim());
 
-       if (open() != null) {
-           rowID = database.insertOrThrow(TABLE_THING, null, newThing);
-           close();
+       try {
+           if (mWritableDB == null) {
+               mWritableDB = getWritableDatabase();
+           }
+           // don't duplicate a thing record--only create one if rowID comes back -1
+           if (rowID == -1) {
+               rowID = mWritableDB.insertOrThrow(TABLE_THING, null, newThing);
+           }
+       } catch (Exception e) {
+           Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
        }
        return rowID;
    }
@@ -84,9 +80,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newThingMonth.put(COLUMN_THINGMONTH_YEAR, year);
         newThingMonth.put(COLUMN_THINGMONTH_MONTH, month);
 
-        if (open() != null) {
-            rowID = database.insertOrThrow(TABLE_THINGMONTH, null, newThingMonth);
+        try {
+            if (mWritableDB == null) {
+                mWritableDB = getWritableDatabase();
+            }
+            rowID = mWritableDB.insertOrThrow(TABLE_THINGMONTH, null, newThingMonth);
             close();
+        } catch (Exception e) {
+            Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
+        }
+        return rowID;
+    }
+
+    public long insertThingMonth(String thingTitle, int year, int month)throws Exception {
+        long rowID = -1;
+        rowID = getThingMonthID(thingTitle, year, month);
+        long thingID = getThingID(thingTitle);
+
+        if (thingID == -1){
+            try {
+                thingID = insertThing(thingTitle);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        ContentValues newThingMonth = new ContentValues();
+        newThingMonth.put(COLUMN_THINGMONTH_THING_ID, thingID);
+        newThingMonth.put(COLUMN_THINGMONTH_YEAR, year);
+        newThingMonth.put(COLUMN_THINGMONTH_MONTH, month);
+
+        try {
+            if (mWritableDB == null) {
+                mWritableDB = getWritableDatabase();
+            }
+            // don't duplicate a thingMonth record--only create one if rowID comes back -1
+            if (rowID == -1){
+                rowID = mWritableDB.insertOrThrow(TABLE_THINGMONTH, null, newThingMonth);
+            }
+        } catch (SQLException e) {
+            Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
         }
         return rowID;
     }
@@ -99,9 +132,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newThingSet.put(COLUMN_THINGSET_DATE, date);
         newThingSet.put(COLUMN_THINGSET_REPS, reps);
 
-        if (open() != null) {
-            rowID = database.insertOrThrow(TABLE_THINGSET, null, newThingSet);
-            close();
+        try {
+            if (mWritableDB == null) {
+                mWritableDB = getWritableDatabase();
+            }
+            rowID = mWritableDB.insertOrThrow(TABLE_THINGSET, null, newThingSet);
+        } catch (SQLException e) {
+            Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
         }
         return rowID;
     }
@@ -114,7 +151,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         thingMonthID = getThingMonthID(title, year, month);
         if (thingMonthID == -1){
             try {
-                thingMonthID = insertThingMonth(getThingID(title), year, month);
+                thingMonthID = insertThingMonth(title, year, month);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -125,9 +162,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newThingSet.put(COLUMN_THINGSET_DATE, date);
         newThingSet.put(COLUMN_THINGSET_REPS, reps);
 
-        if (open() != null) {
-            rowID = database.insertOrThrow(TABLE_THINGSET, null, newThingSet);
-            close();
+        try {
+            if (mWritableDB == null) {
+                mWritableDB = getWritableDatabase();
+            }
+            rowID = mWritableDB.insertOrThrow(TABLE_THINGSET, null, newThingSet);
+        } catch (SQLException e) {
+            Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
         }
         return rowID;
     }
@@ -140,16 +181,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = null;
         int theId = -1;
 
-        if (open() != null){
+        try {
+            if (mReadableDB == null) {
+                mReadableDB = getReadableDatabase();
+            }
             title = title.replace("'", "''").trim();
-            cursor = database.rawQuery("SELECT _id FROM " + TABLE_THING
-                    + " WHERE " + COLUMN_TITLE + " = '" + title + "'", null);
+            cursor = mReadableDB.query(TABLE_THING, new String[]{"_id"}, COLUMN_TITLE + "= ?", new String[]{title}, null, null, null);
+        /*cursor = database.rawQuery("SELECT _id FROM " + TABLE_THING
+                + " WHERE " + COLUMN_TITLE + " = ? ", new String[]{title});*/
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 theId = cursor.getInt(0);
             }
+        } catch (Exception e) {
+            Log.d(TAG, "EXCEPTION! " + e.getMessage());
+        } finally {
+            cursor.close();
+            return theId;
         }
-        return theId;
     }
 
     public int getThingMonthID(String title, int year, int month){
@@ -157,18 +206,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int thingMonthID = -1;
         long thingID = -1;
 
-        if (open() != null){
-            title = title.replace("'", "''").trim();
-            thingID = getThingID(title);
-            if (thingID == -1){
-                try {
-                    thingID = insertThing(title);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        title = title.replace("'", "''").trim();
+        thingID = getThingID(title);
+        if (thingID == -1){
+            try {
+                thingID = insertThing(title);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            if (mReadableDB == null) {
+                mReadableDB = getReadableDatabase();
             }
             if (thingID != -1){
-                cursor = database.rawQuery("SELECT _id FROM " + TABLE_THINGMONTH
+                cursor = mReadableDB.rawQuery("SELECT _id FROM " + TABLE_THINGMONTH
                         + " WHERE " + COLUMN_THINGMONTH_THING_ID + " = " + thingID
                         + " AND " + COLUMN_THINGMONTH_YEAR + " = " + year
                         + " AND " + COLUMN_THINGMONTH_MONTH + " = " + month, null);
@@ -177,23 +230,74 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     thingMonthID = cursor.getInt(0);
                 }
             }
-
+        } catch (Exception e) {
+            Log.d(TAG, "EXCEPTION! " + e.getMessage());
+        } finally {
+            cursor.close();
+            return thingMonthID;
         }
-        return thingMonthID;
+
+    }
+
+    /*public Cursor getAllThings() {
+        Cursor cursor = null;
+        if (openWritable() != null) {
+            cursor = database.rawQuery("SELECT * FROM " + TABLE_THING, null); //don't put a semicolon in this query
+        }
+        return cursor;
+    }*/
+
+    public List<Thing> getAllThings() {
+        List<Thing> things = new ArrayList<Thing>();
+
+        Thing thing = null;
+        Cursor cursor = null;
+
+        try {
+            if (mReadableDB == null) {
+                mReadableDB = getReadableDatabase();
+            }
+            cursor = mReadableDB.rawQuery("SELECT * FROM " + TABLE_THING, null); //don't put a semicolon in this query
+            if (cursor.moveToFirst()) {
+                do {
+                    thing = new Thing(cursor.getString(1));
+                    things.add(thing);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "EXCEPTION! " + e.getMessage());
+        } finally {
+            cursor.close();
+            return things;
+        }
+    }
+
+
+    public void deleteAll(String tableName){
+        try {
+            if (mWritableDB == null) {
+                mWritableDB = getWritableDatabase();
+            }
+            mWritableDB.delete(tableName, null, null);
+        } catch (Exception e) {
+            Log.d (TAG, "DELETE EXCEPTION! " + e.getMessage());
+        }
+
     }
 
 
 
 
-
-
-
-    private void fillDatabaseWithData(SQLiteDatabase db) {
+    private void fillDatabaseWithData() {
         String[] titles = {"Pushups", "Take Vitamin C", "Practice Hindemith", "Add Water to Fish Tank"};
+
+        //deleteAll(TABLE_THING);
+        deleteAll(TABLE_THINGSET);
 
         try {
             insertThingSet(titles[0], 2017, 10, 2, 11);
             insertThingSet(titles[0], 2017, 11, 9, 140);
+            insertThingSet(titles[1], 2017, 11, 17, 9);
         } catch (Exception e) {
             e.printStackTrace();
         }
