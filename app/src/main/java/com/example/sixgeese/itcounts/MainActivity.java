@@ -48,19 +48,11 @@ public class MainActivity extends AppCompatActivity
 
         titles = new ArrayList<>();
         titlesListView = findViewById(R.id.thingTitles);
-        getSupportLoaderManager().initLoader(0,null,this);
-
-
-        //titles = new String[]{"Take Vitamin C", "Practice Hindemith", "Add Water to Fish Tanks", "Pushups"};
-        /*adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titles);
-        titlesListView.setAdapter(adapter);*/
+        getSupportLoaderManager().initLoader(0,null,this); // titles and adapter are set up here
     }
 
 
-    public void goToCalendar(View view) {
-        Intent intent = new Intent(this, CalendarActivity.class);
-        startActivity(intent);
-    }
+
 
     @Override
     public Loader<List<Thing>> onCreateLoader(int id, Bundle args) {

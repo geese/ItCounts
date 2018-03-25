@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class ThingMonth {
 
     private String thingTitle;
-    private int year, month;
+    private int year, month, id;
     private ArrayList<ThingSet> thingSets;
 
     public ThingMonth(String thingTitle, int year, int month){
@@ -18,10 +18,22 @@ public class ThingMonth {
         thingSets = new ArrayList<>();
     }
 
+
+
     public ThingSet addThingSet(int date){
         ThingSet newThingSet = new ThingSet(date);
         thingSets.add(newThingSet);
         return newThingSet;
+    }
+
+    public ThingSet addThingSet(int year, int month, int date){
+        ThingSet newThingSet = new ThingSet(year, month, date);
+        thingSets.add(newThingSet);
+        return newThingSet;
+    }
+
+    public void addThingSet(ThingSet thingSet){
+        thingSets.add(thingSet);
     }
 
     public ThingSet removeThingSet(int index){
@@ -32,6 +44,13 @@ public class ThingMonth {
         return thingSets.remove(thingSet);
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getThingTitle() {
         return thingTitle;

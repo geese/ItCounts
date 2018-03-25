@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.example.sixgeese.itcounts.model.Thing;
+import com.example.sixgeese.itcounts.model.ThingMonth;
+import com.example.sixgeese.itcounts.model.ThingSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -187,8 +189,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             title = title.replace("'", "''").trim();
             cursor = mReadableDB.query(TABLE_THING, new String[]{"_id"}, COLUMN_TITLE + "= ?", new String[]{title}, null, null, null);
-        /*cursor = database.rawQuery("SELECT _id FROM " + TABLE_THING
-                + " WHERE " + COLUMN_TITLE + " = ? ", new String[]{title});*/
+
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 theId = cursor.getInt(0);
@@ -208,13 +209,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         title = title.replace("'", "''").trim();
         thingID = getThingID(title);
-        if (thingID == -1){
-            try {
-                thingID = insertThing(title);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+
 
         try {
             if (mReadableDB == null) {
@@ -257,10 +252,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (mReadableDB == null) {
                 mReadableDB = getReadableDatabase();
             }
-            cursor = mReadableDB.rawQuery("SELECT * FROM " + TABLE_THING, null); //don't put a semicolon in this query
+            cursor = mReadableDB.rawQuery("SELECT " + COLUMN_TITLE + " FROM " + TABLE_THING
+                    + " ORDER BY " + COLUMN_TITLE, null); //don't put a semicolon in this query
             if (cursor.moveToFirst()) {
                 do {
-                    thing = new Thing(cursor.getString(1));
+                    thing = new Thing(cursor.getString(0));
                     things.add(thing);
                 } while (cursor.moveToNext());
             }
@@ -270,6 +266,71 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cursor.close();
             return things;
         }
+    }
+
+    public List<ThingMonth> getThingMonthsByTitle(String title) {
+        List<ThingMonth> thingMonths = new ArrayList<ThingMonth>();
+        int thingID = getThingID(title);
+
+        ThingMonth thingMonth = null;
+        Cursor cursor = null;
+
+        // populate the list of ThingMonths from database
+        try {
+            if (mReadableDB == null) {
+                mReadableDB = getReadableDatabase();
+            }
+            cursor = mReadableDB.rawQuery(
+                    "SELECT * FROM " + TABLE_THINGMONTH + " WHERE " + COLUMN_THINGMONTH_THING_ID
+                    + " = " + thingID, null); //don't put a semicolon in this query
+            if (cursor.moveToFirst()) {
+                do {
+                    thingMonth = new ThingMonth(title,
+                            cursor.getInt(cursor.getColumnIndex(COLUMN_THINGMONTH_YEAR)),
+                            cursor.getInt(cursor.getColumnIndex(COLUMN_THINGMONTH_MONTH)));
+                    thingMonth.setId(cursor.getInt(cursor.getColumnIndex("_id")));
+                    thingMonths.add(thingMonth);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "EXCEPTION! " + e.getMessage());
+        } finally {
+            cursor.close();
+        }
+
+        // for each ThingMonth, populate its ThingSets list with ThingSets associated with the ThingMonth _id.
+        for (ThingMonth thMonth : thingMonths ) {
+            try {
+                if (mReadableDB == null) {
+                    mReadableDB = getReadableDatabase();
+                }
+                cursor = mReadableDB.rawQuery(
+                        "SELECT * FROM " + TABLE_THINGSET + " WHERE " + COLUMN_THINGSET_MONTH_ID
+                                + " = " + thMonth.getId(), null); //don't put a semicolon in this query
+                if (cursor.moveToFirst()) {
+                    do {
+                        ThingSet thingSet = new ThingSet(
+                                thMonth.getYear(), thMonth.getMonth(),
+                                cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_DATE)));
+                        thingSet.setId(cursor.getInt(cursor.getColumnIndex("_id")));
+                        thMonth.addThingSet(thingSet);
+                    } while (cursor.moveToNext());
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "EXCEPTION! " + e.getMessage());
+            } finally {
+                cursor.close();
+            }
+        }
+        return thingMonths;
+    }
+
+
+
+    public ThingMonth getThingMonth(String title, int year, int month) {
+        // select ThingMonth matching the Thing title, year, and month
+        // select ThingSets belonging to the ThingMonth
+        return null;
     }
 
 
