@@ -13,6 +13,7 @@ import com.example.sixgeese.itcounts.model.ThingMonth;
 import com.example.sixgeese.itcounts.model.ThingSet;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import static com.example.sixgeese.itcounts.database.DatabaseConstantsAndStrings.*;
@@ -67,6 +68,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
            // don't duplicate a thing record--only create one if rowID comes back -1
            if (rowID == -1) {
                rowID = mWritableDB.insertOrThrow(TABLE_THING, null, newThing);
+               generateThingMonths((int) rowID);
            }
        } catch (Exception e) {
            Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
@@ -74,8 +76,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
        return rowID;
    }
 
+
+    /*
+        Called everytime a new Thing is inserted.  It inserts ThingMonth records going for about two
+        years prior to and following the date the new Thing is inserted.
+     */
+    private void generateThingMonths(int rowID) throws Exception {
+        Calendar cal = Calendar.getInstance();
+        int thisYear = cal.get(Calendar.YEAR);
+        int thisMonth = cal.get(Calendar.MONTH);
+        for (int year = thisYear-1; year < thisYear+2; year++){
+            for(int month=0; month<12; month++){
+                insertThingMonth(rowID, year, month);
+            }
+        }
+    }
+
     public long insertThingMonth(int thingID, int year, int month)throws Exception {
         long rowID = -1;
+        rowID = getThingMonthID(thingID, year, month);
 
         ContentValues newThingMonth = new ContentValues();
         newThingMonth.put(COLUMN_THINGMONTH_THING_ID, thingID);
@@ -86,8 +105,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (mWritableDB == null) {
                 mWritableDB = getWritableDatabase();
             }
-            rowID = mWritableDB.insertOrThrow(TABLE_THINGMONTH, null, newThingMonth);
-            close();
+            // don't duplicate a thingMonth record--only create one if rowID comes back -1
+            if (rowID == -1){
+                rowID = mWritableDB.insertOrThrow(TABLE_THINGMONTH, null, newThingMonth);
+            }
         } catch (Exception e) {
             Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
         }
@@ -97,18 +118,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public long insertThingMonth(String thingTitle, int year, int month)throws Exception {
         long rowID = -1;
         rowID = getThingMonthID(thingTitle, year, month);
-        long thingID = getThingID(thingTitle);
 
-        if (thingID == -1){
+       // Gonna create Things first before ThingMonths
+        //long thingID = getThingID(thingTitle);
+        /*if (thingID == -1){
             try {
                 thingID = insertThing(thingTitle);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+        }*/
 
         ContentValues newThingMonth = new ContentValues();
-        newThingMonth.put(COLUMN_THINGMONTH_THING_ID, thingID);
+        newThingMonth.put(COLUMN_THINGMONTH_THING_ID, getThingID(thingTitle));
         newThingMonth.put(COLUMN_THINGMONTH_YEAR, year);
         newThingMonth.put(COLUMN_THINGMONTH_MONTH, month);
 
@@ -202,6 +224,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public String getThingTitle(int thingID){
+        Cursor cursor = null;
+        String theTitle = null;
+
+        try {
+            if (mReadableDB == null) {
+                mReadableDB = getReadableDatabase();
+            }
+            cursor = mReadableDB.query(TABLE_THING, new String[]{COLUMN_TITLE},  "_id = ?", new String[]{String.valueOf(thingID)}, null, null, null);
+
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                theTitle = cursor.getString(cursor.getColumnIndex(COLUMN_TITLE));
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "EXCEPTION! " + e.getMessage());
+        } finally {
+            cursor.close();
+            return theTitle;
+        }
+    }
+
+
     public int getThingMonthID(String title, int year, int month){
         Cursor cursor = null;
         int thingMonthID = -1;
@@ -233,6 +278,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
     }
+
+    public int getThingMonthID(int thingID, int year, int month){
+        Cursor cursor = null;
+        int thingMonthID = -1;
+
+        try {
+            if (mReadableDB == null) {
+                mReadableDB = getReadableDatabase();
+            }
+            if (thingID != -1){
+                cursor = mReadableDB.rawQuery("SELECT _id FROM " + TABLE_THINGMONTH
+                        + " WHERE " + COLUMN_THINGMONTH_THING_ID + " = " + thingID
+                        + " AND " + COLUMN_THINGMONTH_YEAR + " = " + year
+                        + " AND " + COLUMN_THINGMONTH_MONTH + " = " + month, null);
+                if (cursor.getCount() > 0) {
+                    cursor.moveToFirst();
+                    thingMonthID = cursor.getInt(0);
+                }
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "EXCEPTION! " + e.getMessage());
+        } finally {
+            cursor.close();
+            return thingMonthID;
+        }
+
+    }
+
 
     /*public Cursor getAllThings() {
         Cursor cursor = null;
@@ -268,8 +341,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public List<ThingMonth> getThingMonthsByTitle(String title) {
-        List<ThingMonth> thingMonths = new ArrayList<ThingMonth>();
+    public ArrayList<ThingMonth> getThingMonthsByTitle(String title) {
+        ArrayList<ThingMonth> thingMonths = new ArrayList<ThingMonth>();
         int thingID = getThingID(title);
 
         ThingMonth thingMonth = null;
@@ -313,6 +386,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                                 thMonth.getYear(), thMonth.getMonth(),
                                 cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_DATE)));
                         thingSet.setId(cursor.getInt(cursor.getColumnIndex("_id")));
+                        thingSet.setReps(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_REPS)));
                         thMonth.addThingSet(thingSet);
                     } while (cursor.moveToNext());
                 }
@@ -350,15 +424,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
     private void fillDatabaseWithData() {
-        String[] titles = {"Pushups", "Take Vitamin C", "Practice Hindemith", "Add Water to Fish Tank"};
+        String[] titles = {"Add Water to Fish Tank", "Practice Hindemith", "Pushups", "Take Vitamin C" };
 
-        //deleteAll(TABLE_THING);
+        /*deleteAll(TABLE_THING);
+        deleteAll(TABLE_THINGMONTH);*/
         deleteAll(TABLE_THINGSET);
 
         try {
+            /*for (String title : titles) {
+                insertThing(title);
+            }*/
+
             insertThingSet(titles[0], 2017, 10, 2, 11);
             insertThingSet(titles[0], 2017, 11, 9, 140);
             insertThingSet(titles[1], 2017, 11, 17, 9);
+            insertThingSet(titles[1], 2018, 2, 1, 6);
+            insertThingSet(titles[1], 2018, 2, 3, 2);
+            insertThingSet(titles[1], 2018, 2, 5, 2);
+            insertThingSet(titles[1], 2018, 2, 7, 201);
+            insertThingSet(titles[1], 2018, 2, 24, 6);
+            insertThingSet(titles[1], 2018, 2, 24, 12);
         } catch (Exception e) {
             e.printStackTrace();
         }

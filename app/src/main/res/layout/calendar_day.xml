@@ -19,7 +19,7 @@
 
     <TextView
         android:scaleY="1.5"
-        android:scaleX=".9"
+        android:scaleX=".97"
         android:id="@+id/date"
         android:layout_width="70dp"
         android:layout_height="70dp"
@@ -42,23 +42,28 @@
         android:id="@+id/cardView"
         android:layout_width="wrap_content"
         android:layout_height="20dp"
+        android:layout_marginTop="8dp"
         android:elevation="8dp"
         android:minWidth="20dp"
+        app:cardCornerRadius="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias=".9"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias=".85">
 
         <TextView
             android:id="@+id/totalReps"
             android:layout_width="match_parent"
             android:layout_height="28dp"
             android:layout_gravity="center"
-            android:fontFamily="@font/comfortaa_bold"
-            android:text="8000"
             android:ellipsize="end"
+            android:fontFamily="@font/comfortaa_bold"
+            android:paddingEnd="1dp"
+            android:paddingStart="1dp"
             android:singleLine="true"
+            android:text="80"
             android:textAlignment="center"
             android:textSize="15sp"
             android:visibility="visible" />
