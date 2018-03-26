@@ -6,4 +6,5 @@
     <color name="colorAccentOpacity">#32ff4081</color>
     <color name="colorAccentOpacity1">#46ff4081</color>
     <color name="background_light_seethrough">#d5ffffff</color>
+    <color name="lightly_shawdowed_background">#14000000</color>
 </resources>

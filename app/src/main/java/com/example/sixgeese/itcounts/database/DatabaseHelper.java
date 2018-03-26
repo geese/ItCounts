@@ -8,7 +8,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.sixgeese.itcounts.CalendarActivity;
 import com.example.sixgeese.itcounts.model.Thing;
+import com.example.sixgeese.itcounts.model.ThingDay;
 import com.example.sixgeese.itcounts.model.ThingMonth;
 import com.example.sixgeese.itcounts.model.ThingSet;
 
@@ -315,8 +317,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return cursor;
     }*/
 
-    public List<Thing> getAllThings() {
-        List<Thing> things = new ArrayList<Thing>();
+    public ArrayList<Thing> getAllThings() {
+        ArrayList<Thing> things = new ArrayList<Thing>();
 
         Thing thing = null;
         Cursor cursor = null;
@@ -399,12 +401,50 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return thingMonths;
     }
 
-
-
     public ThingMonth getThingMonth(String title, int year, int month) {
         // select ThingMonth matching the Thing title, year, and month
         // select ThingSets belonging to the ThingMonth
         return null;
+    }
+
+    public ArrayList<ThingDay> getThingDays(String title, int year, int month, int date, int numDays){
+        ArrayList<ThingDay> thingDays = new ArrayList<>();
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month, date);
+
+        for (int i = 0; i < numDays; i++){
+            int theYear = cal.get(Calendar.YEAR);
+            int theMonth = cal.get(Calendar.MONTH);
+            int theDate = cal.get(Calendar.DATE);
+            Cursor cursor = null;
+            ThingDay thingDay = new ThingDay(title, theYear, theMonth, theDate);
+            int thingMonthID = getThingMonthID(title, theYear, theMonth);
+            try {
+                if (mReadableDB == null) {
+                    mReadableDB = getReadableDatabase();
+                }
+                cursor = mReadableDB.rawQuery(
+                        "SELECT * FROM " + TABLE_THINGSET + " WHERE " + COLUMN_THINGSET_MONTH_ID
+                                + " = " + thingMonthID + " AND " + COLUMN_THINGSET_DATE + " = " + theDate, null); //don't put a semicolon in this query
+                if (cursor.moveToFirst()) {
+                    do {
+                        ThingSet thingSet = new ThingSet(
+                                theYear, theMonth, theDate);
+                        thingSet.setId(cursor.getInt(cursor.getColumnIndex("_id")));
+                        thingSet.setReps(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_REPS)));
+                        thingDay.addThingSet(thingSet);
+                    } while (cursor.moveToNext());
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "EXCEPTION! " + e.getMessage());
+            } finally {
+                cursor.close();
+            }
+            // set Calendar back a day
+            thingDays.add(thingDay);
+            cal.add(Calendar.DATE, -1);
+        }
+        return thingDays;
     }
 
 
@@ -431,11 +471,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         deleteAll(TABLE_THINGSET);
 
         try {
-            /*for (String title : titles) {
+            for (String title : titles) {
                 insertThing(title);
-            }*/
+            }
 
-            insertThingSet(titles[0], 2017, 10, 2, 11);
+            //insertThing("Practice Hindemith");
+
+            insertThingSet(titles[0], 2018, 2, 22, 11);
             insertThingSet(titles[0], 2017, 11, 9, 140);
             insertThingSet(titles[1], 2017, 11, 17, 9);
             insertThingSet(titles[1], 2018, 2, 1, 6);

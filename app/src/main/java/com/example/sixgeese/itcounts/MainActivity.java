@@ -15,12 +15,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.example.sixgeese.itcounts.model.Thing;
+import com.example.sixgeese.itcounts.model.ThingDay;
 import com.example.sixgeese.itcounts.model.ThingMonth;
+import com.example.sixgeese.itcounts.ui.ThingListAdapter;
 import com.example.sixgeese.itcounts.ui.ThingLoader;
 import com.example.sixgeese.itcounts.ui.ThingMonthAdapter;
+import com.example.sixgeese.itcounts.ui.ThingsWithDaysLoader;
 import com.facebook.stetho.Stetho;
 
 import java.text.SimpleDateFormat;
@@ -31,14 +35,17 @@ import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-    implements LoaderManager.LoaderCallbacks<List<Thing>>{
+    implements LoaderManager.LoaderCallbacks<ArrayList<ArrayList<ThingDay>>>{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final String KEY_THING_TITLE = "thing_title";
 
-    ListView titlesListView;
-    ArrayList<String> titles;
-    ArrayAdapter<String> adapter;
+
+    RecyclerView titlesRecyclerView;
+    ArrayList<ArrayList<ThingDay>> thingsWithDays;
+    ThingListAdapter adapter;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +53,9 @@ public class MainActivity extends AppCompatActivity
         Stetho.initializeWithDefaults(this);
         setContentView(R.layout.activity_main);
 
-        titles = new ArrayList<>();
-        titlesListView = findViewById(R.id.thingTitles);
+        thingsWithDays = new ArrayList<>();
+        titlesRecyclerView = findViewById(R.id.thingTitlesRecyclerView);
+        titlesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         getSupportLoaderManager().initLoader(0,null,this); // titles and adapter are set up here
     }
 
@@ -55,29 +63,21 @@ public class MainActivity extends AppCompatActivity
 
 
     @Override
-    public Loader<List<Thing>> onCreateLoader(int id, Bundle args) {
-        return new ThingLoader(this);
+    public Loader<ArrayList<ArrayList<ThingDay>>> onCreateLoader(int id, Bundle args) {
+        return new ThingsWithDaysLoader(this);
     }
 
     @Override
-    public void onLoadFinished(Loader<List<Thing>> loader, List<Thing> things) {
-        Log.d(TAG, "Number of Things from Loader: " + things.size());
-        titles.clear();
-        for (Thing thing : things) {
-            titles.add(thing.getTitle());
+    public void onLoadFinished(Loader<ArrayList<ArrayList<ThingDay>>> loader, ArrayList<ArrayList<ThingDay>> thingsWDays) {
+        Log.d(TAG, "ThingsWDays.size(): " + thingsWDays.size());
+        thingsWithDays.clear();
+        for (ArrayList<ThingDay> thingWithDays : thingsWDays) {
+            thingsWithDays.add(thingWithDays);
         }
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titles);
-        titlesListView.setAdapter(adapter);
-        titlesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
-                intent.putExtra(KEY_THING_TITLE, titles.get(i));
-                MainActivity.this.startActivity(intent);
-            }
-        });
+        adapter = new ThingListAdapter(thingsWithDays, this);
+        titlesRecyclerView.setAdapter(adapter);
     }
 
     @Override
-    public void onLoaderReset(Loader<List<Thing>> loader) {}
+    public void onLoaderReset(Loader<ArrayList<ArrayList<ThingDay>>> loader) {}
 }
