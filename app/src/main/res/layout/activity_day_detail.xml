@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.sixgeese.itcounts.DayDetailActivity">
+
+    <TextView
+        android:id="@+id/dayDetailTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="The Thing" />
+
+    <TextView
+        android:id="@+id/dayDetailDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="The Date"/>
+
+    <LinearLayout
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:background="@color/colorAccent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <TextView
+            android:textColor="#FFFFFF"
+            android:id="@+id/textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:gravity="center_horizontal"
+            android:text="Sets"
+            android:textSize="14sp" />
+
+        <TextView
+            android:textColor="#FFFFFF"
+            android:id="@+id/textView2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:gravity="center_horizontal"
+            android:text="Repetitions"
+            android:textSize="14sp" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+
+
+    <ScrollView
+        android:id="@+id/dayDetailScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="18">
+
+        <LinearLayout
+            android:id="@+id/dayDetailSetHolder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+        <include layout="@layout/day_detail_set"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

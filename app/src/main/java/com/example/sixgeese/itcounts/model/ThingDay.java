@@ -46,4 +46,16 @@ public class ThingDay {
     public ArrayList<ThingSet> getThingSets() {
         return thingSets;
     }
+
+    public int getYear() {
+        return year;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public int getDate() {
+        return date;
+    }
 }

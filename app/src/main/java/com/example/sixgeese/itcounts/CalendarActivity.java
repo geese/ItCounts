@@ -75,10 +75,10 @@ public class CalendarActivity extends AppCompatActivity
         thingMonths.add(new ThingMonth("Take Vitamins", 2018, 2));
         thingMonths.add(new ThingMonth("Take Vitamins", 2018, 3));
 
-        thingMonths.get(0).addThingSet(4).setReps(2);
-        thingMonths.get(0).addThingSet(4).setReps(6);
-        thingMonths.get(0).addThingSet(6).setReps(3);
-        thingMonths.get(1).addThingSet(17).setReps(15);
+        thingMonths.get(5).addThingSet(4).setReps(2);
+        thingMonths.get(5).addThingSet(4).setReps(6);
+        thingMonths.get(5).addThingSet(6).setReps(3);
+        thingMonths.get(5).addThingSet(17).setReps(15);
     }
 
     @Override

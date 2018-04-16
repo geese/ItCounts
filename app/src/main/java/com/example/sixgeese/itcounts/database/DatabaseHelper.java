@@ -477,15 +477,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             //insertThing("Practice Hindemith");
 
-            insertThingSet(titles[0], 2018, 2, 22, 11);
-            insertThingSet(titles[0], 2017, 11, 9, 140);
-            insertThingSet(titles[1], 2017, 11, 17, 9);
+            insertThingSet(titles[0], 2018, 3, 22, 11);
+            insertThingSet(titles[0], 2018, 3, 9, 140);
+            insertThingSet(titles[1], 2018, 1, 17, 9);
             insertThingSet(titles[1], 2018, 2, 1, 6);
             insertThingSet(titles[1], 2018, 2, 3, 2);
             insertThingSet(titles[1], 2018, 2, 5, 2);
-            insertThingSet(titles[1], 2018, 2, 7, 201);
+            insertThingSet(titles[1], 2018, 4, 7, 13);
+            insertThingSet(titles[1], 2018, 4, 7, 100);
             insertThingSet(titles[1], 2018, 2, 24, 6);
             insertThingSet(titles[1], 2018, 2, 24, 12);
+            insertThingSet(titles[2], 2018, 2, 23, 10000);
+            insertThingSet(titles[2], 2018, 2, 23, 10500);
         } catch (Exception e) {
             e.printStackTrace();
         }
