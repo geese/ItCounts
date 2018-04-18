@@ -32,6 +32,8 @@ public class CalendarActivity extends AppCompatActivity
 
     private static final String TAG = CalendarActivity.class.getSimpleName();
 
+    public static final int KEY_ID_LOADER_THINGMONTH = 1;
+
     TextView thingTitle;
     ArrayList<ThingMonth> thingMonths;
     RecyclerView recyclerView;

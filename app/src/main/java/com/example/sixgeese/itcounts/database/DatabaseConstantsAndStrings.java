@@ -36,6 +36,7 @@ public class DatabaseConstantsAndStrings {
      */
     protected static final String TABLE_THINGSET = "thingset";
     //protected static final String COLUMN_THINGSET_ID = "id";
+    protected static final String COLUMN_THINGSET_THING_ID = "thingset_thing_id";
     protected static final String COLUMN_THINGSET_MONTH_ID = "thingmonth_id";
     protected static final String COLUMN_THINGSET_DATE = "date";
     protected static final String COLUMN_THINGSET_REPS = "reps";
@@ -66,6 +67,7 @@ public class DatabaseConstantsAndStrings {
      */
     protected static final String CREATE_THINGSET_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_THINGSET + "(" +
             "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            //COLUMN_THINGSET_THING_ID + " INTEGER REFERENCES " + TABLE_THING + "(_id) ON UPDATE CASCADE ON DELETE CASCADE, " +
             COLUMN_THINGSET_MONTH_ID + " INTEGER REFERENCES " + TABLE_THINGMONTH + "(_id) ON UPDATE CASCADE ON DELETE CASCADE, " +
             COLUMN_THINGSET_DATE + " INTEGER," +
             COLUMN_THINGSET_REPS + " INTEGER);";

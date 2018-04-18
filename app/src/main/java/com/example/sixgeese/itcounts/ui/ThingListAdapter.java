@@ -2,11 +2,8 @@ package com.example.sixgeese.itcounts.ui;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.constraint.ConstraintLayout;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -21,9 +18,7 @@ import com.example.sixgeese.itcounts.DayDetailActivity;
 import com.example.sixgeese.itcounts.MainActivity;
 import com.example.sixgeese.itcounts.R;
 import com.example.sixgeese.itcounts.model.ThingDay;
-import com.example.sixgeese.itcounts.model.ThingMonth;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
@@ -124,16 +119,23 @@ public class ThingListAdapter extends RecyclerView.Adapter<ThingListAdapter.Thin
     private void goToDayDetailActivity(ThingDay thingDay) {
         Calendar cal = Calendar.getInstance();
         cal.set(thingDay.getYear(), thingDay.getMonth(), thingDay.getDate());
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int date = cal.get(Calendar.DATE);
+
         String dateString =
                 cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())
                         + ", "
                         + cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
-                        + " " + cal.get(Calendar.DATE)
-                        + ", " + cal.get(Calendar.YEAR);
+                        + " " + date
+                        + ", " + year;
 
         Intent intent = new Intent(context, DayDetailActivity.class);
         intent.putExtra(DayDetailActivity.KEY_DAY_DETAIL_TITLE, thingDay.getTitle());
-        intent.putExtra(DayDetailActivity.KEY_DAY_DETAIL_DATE, dateString);
+        intent.putExtra(DayDetailActivity.KEY_DAY_DETAIL_DATE_STRING, dateString);
+        intent.putExtra(DayDetailActivity.KEY_DAY_DETAIL_YEAR, year);
+        intent.putExtra(DayDetailActivity.KEY_DAY_DETAIL_MONTH, month);
+        intent.putExtra(DayDetailActivity.KEY_DAY_DETAIL_DATE, date);
         context.startActivity(intent);
     }
 

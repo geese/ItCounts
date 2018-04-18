@@ -57,8 +57,13 @@
     </LinearLayout>
 
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/dayDetailRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="18" />
 
-    <ScrollView
+<!--    <ScrollView
         android:id="@+id/dayDetailScrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -74,6 +79,6 @@
 
         </LinearLayout>
 
-    </ScrollView>
+    </ScrollView>-->
 
 </LinearLayout>

@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final String KEY_THING_TITLE = "thing_title";
+    public static final int KEY_ID_LOADER_THINGSWITHDAYS = 0;
 
 
     RecyclerView titlesRecyclerView;
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity
         titlesRecyclerView = findViewById(R.id.thingTitlesRecyclerView);
         titlesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        getSupportLoaderManager().initLoader(0,null,this); // titles and adapter are set up here
+        getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSWITHDAYS,null,this); // titles and adapter are set up here
     }
 
 

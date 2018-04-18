@@ -14,6 +14,13 @@ public class ThingSet {
         this.date = date;
     }
 
+    public ThingSet(int year, int month, int date, int id){
+        this.year = year;
+        this.month = month;
+        this.date = date;
+        this.id = id;
+    }
+
     public ThingSet(int date){
         this.date = date;
     }

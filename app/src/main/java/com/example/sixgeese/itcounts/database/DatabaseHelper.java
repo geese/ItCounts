@@ -169,6 +169,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rowID;
     }
 
+
+
+
     public long insertThingSet(String title, int year, int month, int date, int reps)throws Exception {
         long rowID = -1;
         long thingMonthID = -1;
@@ -448,6 +451,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    public ArrayList<ThingSet> getThingSets(String title, int year, int month, int date){
+        ArrayList<ThingSet> thingSets = new ArrayList<>();
+
+        title = title.replace("'", "''").trim();
+        int thingMonthID = getThingMonthID(title, year, month);
+
+
+        if (thingMonthID != -1) {
+            Cursor cursor = null;
+
+            try {
+                if (mReadableDB == null) {
+                    mReadableDB = getReadableDatabase();
+                }
+                cursor = mReadableDB.rawQuery(
+                        "SELECT * FROM " + TABLE_THINGSET + " WHERE " + COLUMN_THINGSET_MONTH_ID
+                                + " = " + thingMonthID + " AND " + COLUMN_THINGSET_DATE + " = " + date, null); //don't put a semicolon in this query
+                if (cursor.moveToFirst()) {
+                    do {
+                        ThingSet thingSet = new ThingSet(
+                                year, month, date);
+                        thingSet.setId(cursor.getInt(cursor.getColumnIndex("_id")));
+                        thingSet.setReps(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_REPS)));
+                        thingSets.add(thingSet);
+                    } while (cursor.moveToNext());
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "EXCEPTION! " + e.getMessage());
+            } finally {
+                cursor.close();
+            }
+        }
+        return thingSets;
+    }
+
+
+
     public void deleteAll(String tableName){
         try {
             if (mWritableDB == null) {
@@ -478,8 +518,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             //insertThing("Practice Hindemith");
 
             insertThingSet(titles[0], 2018, 3, 22, 11);
-            insertThingSet(titles[0], 2018, 3, 9, 140);
-            insertThingSet(titles[1], 2018, 1, 17, 9);
+            insertThingSet(titles[0], 2018, 3, 17, 15);
+            insertThingSet(titles[0], 2018, 3, 17, 9);
+            insertThingSet(titles[1], 2018, 1, 2    , 9);
             insertThingSet(titles[1], 2018, 2, 1, 6);
             insertThingSet(titles[1], 2018, 2, 3, 2);
             insertThingSet(titles[1], 2018, 2, 5, 2);
