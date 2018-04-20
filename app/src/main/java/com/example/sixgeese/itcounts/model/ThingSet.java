@@ -6,12 +6,14 @@ package com.example.sixgeese.itcounts.model;
 
 public class ThingSet {
     private int reps;
-    private int year, month, date, id;
+    private int year, month, date, id, ordinal_position, thingMonthId;
 
     public ThingSet(int year, int month, int date){
         this.year = year;
         this.month = month;
         this.date = date;
+        this.id = -1;
+        this.thingMonthId = -1;
     }
 
     public ThingSet(int year, int month, int date, int id){
@@ -70,5 +72,21 @@ public class ThingSet {
 
     public void setDate(int date) {
         this.date = date;
+    }
+
+    public int getThingMonthId() {
+        return thingMonthId;
+    }
+
+    public void setThingMonthId(int thingMonthId) {
+        this.thingMonthId = thingMonthId;
+    }
+
+    public int getOrdinalPosition() {
+        return ordinal_position;
+    }
+
+    public void setOrdinalPosition(int ordinal_position) {
+        this.ordinal_position = ordinal_position;
     }
 }

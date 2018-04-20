@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.example.sixgeese.itcounts.CalendarActivity;
 import com.example.sixgeese.itcounts.model.Thing;
 import com.example.sixgeese.itcounts.model.ThingDay;
 import com.example.sixgeese.itcounts.model.ThingMonth;
@@ -16,7 +15,6 @@ import com.example.sixgeese.itcounts.model.ThingSet;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 import static com.example.sixgeese.itcounts.database.DatabaseConstantsAndStrings.*;
 
@@ -27,13 +25,17 @@ import static com.example.sixgeese.itcounts.database.DatabaseConstantsAndStrings
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = DatabaseHelper.class.getSimpleName();
+    private static int countCreation = 0;
 
     private SQLiteDatabase mWritableDB;
     private SQLiteDatabase mReadableDB;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        fillDatabaseWithData();
+        countCreation++;
+        if (countCreation == 0){
+            fillDatabaseWithData();
+        }
     }
 
 
@@ -150,13 +152,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rowID;
     }
 
-    public long insertThingSet(int thingMonthID, int date, int reps)throws Exception {
+    public long insertThingSet(int thingMonthID, int date, int reps, int ordPos)throws Exception {
         long rowID = -1;
 
         ContentValues newThingSet = new ContentValues();
         newThingSet.put(COLUMN_THINGSET_MONTH_ID, thingMonthID);
         newThingSet.put(COLUMN_THINGSET_DATE, date);
         newThingSet.put(COLUMN_THINGSET_REPS, reps);
+        newThingSet.put(COLUMN_THINGSET_ORDINAL_POSITION, ordPos);
 
         try {
             if (mWritableDB == null) {
@@ -172,7 +175,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
 
-    public long insertThingSet(String title, int year, int month, int date, int reps)throws Exception {
+    public long insertThingSet(String title, int year, int month, int date, int reps, int ordPos)throws Exception {
         long rowID = -1;
         long thingMonthID = -1;
 
@@ -190,12 +193,51 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newThingSet.put(COLUMN_THINGSET_MONTH_ID, thingMonthID);
         newThingSet.put(COLUMN_THINGSET_DATE, date);
         newThingSet.put(COLUMN_THINGSET_REPS, reps);
+        newThingSet.put(COLUMN_THINGSET_ORDINAL_POSITION, ordPos);
 
         try {
             if (mWritableDB == null) {
                 mWritableDB = getWritableDatabase();
             }
             rowID = mWritableDB.insertOrThrow(TABLE_THINGSET, null, newThingSet);
+        } catch (SQLException e) {
+            Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
+        }
+        return rowID;
+    }
+
+    public long insertThingSet(ThingSet thingSet)throws Exception {
+        long rowID = -1;
+
+        ContentValues newThingSet = new ContentValues();
+        newThingSet.put(COLUMN_THINGSET_MONTH_ID, thingSet.getThingMonthId());
+        newThingSet.put(COLUMN_THINGSET_DATE, thingSet.getDate());
+        newThingSet.put(COLUMN_THINGSET_REPS, thingSet.getReps());
+        newThingSet.put(COLUMN_THINGSET_ORDINAL_POSITION, thingSet.getOrdinalPosition());
+
+        try {
+            if (mWritableDB == null) {
+                mWritableDB = getWritableDatabase();
+            }
+            rowID = mWritableDB.insertOrThrow(TABLE_THINGSET, null, newThingSet);
+        } catch (SQLException e) {
+            Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
+        }
+        return rowID;
+    }
+
+    public long updateThingSet(ThingSet thingSet) {
+        long rowID = -1;
+
+        ContentValues newThingSet = new ContentValues();
+        newThingSet.put(COLUMN_THINGSET_REPS, thingSet.getReps());
+        newThingSet.put(COLUMN_THINGSET_ORDINAL_POSITION, thingSet.getOrdinalPosition());
+
+        try {
+            if (mWritableDB == null) {
+                mWritableDB = getWritableDatabase();
+            }
+            rowID = mWritableDB.update(TABLE_THINGSET, newThingSet, "_id = " + thingSet.getId(), null);
         } catch (SQLException e) {
             Log.d(TAG, "INSERT EXCEPTION! " + e.getMessage());
         }
@@ -467,13 +509,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 }
                 cursor = mReadableDB.rawQuery(
                         "SELECT * FROM " + TABLE_THINGSET + " WHERE " + COLUMN_THINGSET_MONTH_ID
-                                + " = " + thingMonthID + " AND " + COLUMN_THINGSET_DATE + " = " + date, null); //don't put a semicolon in this query
+                                + " = " + thingMonthID + " AND " + COLUMN_THINGSET_DATE + " = " + date
+                                + " ORDER BY " + COLUMN_THINGSET_ORDINAL_POSITION, null); //don't put a semicolon in this query
                 if (cursor.moveToFirst()) {
                     do {
                         ThingSet thingSet = new ThingSet(
                                 year, month, date);
-                        thingSet.setId(cursor.getInt(cursor.getColumnIndex("_id")));
+                        thingSet.setId(cursor.getInt(0)); //_id
                         thingSet.setReps(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_REPS)));
+                        thingSet.setOrdinalPosition(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_ORDINAL_POSITION)));
+                        thingSet.setThingMonthId(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_MONTH_ID)));
                         thingSets.add(thingSet);
                     } while (cursor.moveToNext());
                 }
@@ -484,6 +529,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         }
         return thingSets;
+    }
+
+    public int deleteThingSet(int theId) {
+        int numRowsDeleted = -1;
+        try {
+            if (mWritableDB == null) {
+                mWritableDB = getWritableDatabase();
+            }
+            numRowsDeleted = mWritableDB.delete(TABLE_THINGSET, "_id = " + theId, null);
+        } catch (Exception e) {
+            Log.d (TAG, "DELETE EXCEPTION! " + e.getMessage());
+        }
+        return numRowsDeleted;
     }
 
 
@@ -497,7 +555,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } catch (Exception e) {
             Log.d (TAG, "DELETE EXCEPTION! " + e.getMessage());
         }
-
     }
 
 
@@ -508,7 +565,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         /*deleteAll(TABLE_THING);
         deleteAll(TABLE_THINGMONTH);*/
-        deleteAll(TABLE_THINGSET);
+        //deleteAll(TABLE_THINGSET);
 
         try {
             for (String title : titles) {
@@ -517,19 +574,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             //insertThing("Practice Hindemith");
 
-            insertThingSet(titles[0], 2018, 3, 22, 11);
-            insertThingSet(titles[0], 2018, 3, 17, 15);
-            insertThingSet(titles[0], 2018, 3, 17, 9);
-            insertThingSet(titles[1], 2018, 1, 2    , 9);
-            insertThingSet(titles[1], 2018, 2, 1, 6);
-            insertThingSet(titles[1], 2018, 2, 3, 2);
-            insertThingSet(titles[1], 2018, 2, 5, 2);
-            insertThingSet(titles[1], 2018, 4, 7, 13);
-            insertThingSet(titles[1], 2018, 4, 7, 100);
-            insertThingSet(titles[1], 2018, 2, 24, 6);
-            insertThingSet(titles[1], 2018, 2, 24, 12);
-            insertThingSet(titles[2], 2018, 2, 23, 10000);
-            insertThingSet(titles[2], 2018, 2, 23, 10500);
+            insertThingSet(titles[0], 2018, 3, 22, 11, 0);
+            insertThingSet(titles[0], 2018, 3, 17, 15, 0);
+            insertThingSet(titles[0], 2018, 3, 17, 9, 1);
+            insertThingSet(titles[0], 2018, 3, 17, 3, 2);
+            insertThingSet(titles[1], 2018, 1, 2, 9, 0);
+            insertThingSet(titles[1], 2018, 2, 1, 6, 0);
+            insertThingSet(titles[1], 2018, 2, 3, 2, 0);
+            insertThingSet(titles[1], 2018, 2, 5, 2, 0);
+            insertThingSet(titles[1], 2018, 4, 7, 13, 0);
+            insertThingSet(titles[1], 2018, 4, 7, 100, 1);
+            insertThingSet(titles[1], 2018, 2, 24, 6, 0);
+            insertThingSet(titles[1], 2018, 2, 24, 12, 1);
+            insertThingSet(titles[2], 2018, 2, 23, 10000, 0);
+            insertThingSet(titles[2], 2018, 2, 23, 10500, 1);
         } catch (Exception e) {
             e.printStackTrace();
         }

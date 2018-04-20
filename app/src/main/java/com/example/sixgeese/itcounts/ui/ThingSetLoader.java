@@ -1,6 +1,7 @@
 package com.example.sixgeese.itcounts.ui;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 
@@ -38,7 +39,12 @@ public class ThingSetLoader extends AsyncTaskLoader<ArrayList<ThingSet>> {
     public ArrayList<ThingSet> loadInBackground() {
         DatabaseHelper db = new DatabaseHelper(context);
         ArrayList<ThingSet> thingSets = db.getThingSets(title, year, month, date);
-        Log.d(TAG, "Number of Sets from database: " + thingSets.size());
+
+        // keep the same order, but eliminate gaps in the ordinal position numbering
+        for (ThingSet theSet : thingSets) {
+            theSet.setOrdinalPosition(thingSets.indexOf(theSet));
+        }
+
         return thingSets;
     }
 
@@ -49,4 +55,6 @@ public class ThingSetLoader extends AsyncTaskLoader<ArrayList<ThingSet>> {
     protected void onStartLoading() {
         forceLoad(); // Starts the loadInBackground method
     }
+
+
 }

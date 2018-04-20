@@ -40,6 +40,7 @@ public class DatabaseConstantsAndStrings {
     protected static final String COLUMN_THINGSET_MONTH_ID = "thingmonth_id";
     protected static final String COLUMN_THINGSET_DATE = "date";
     protected static final String COLUMN_THINGSET_REPS = "reps";
+    protected static final String COLUMN_THINGSET_ORDINAL_POSITION = "ordinal_position";
 
     // end table name and column constants
 
@@ -66,9 +67,10 @@ public class DatabaseConstantsAndStrings {
      * ThingSet table creation SQL statement
      */
     protected static final String CREATE_THINGSET_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_THINGSET + "(" +
-            "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             //COLUMN_THINGSET_THING_ID + " INTEGER REFERENCES " + TABLE_THING + "(_id) ON UPDATE CASCADE ON DELETE CASCADE, " +
             COLUMN_THINGSET_MONTH_ID + " INTEGER REFERENCES " + TABLE_THINGMONTH + "(_id) ON UPDATE CASCADE ON DELETE CASCADE, " +
-            COLUMN_THINGSET_DATE + " INTEGER," +
-            COLUMN_THINGSET_REPS + " INTEGER);";
+            COLUMN_THINGSET_DATE + " INTEGER, " +
+            COLUMN_THINGSET_REPS + " INTEGER, " +
+            COLUMN_THINGSET_ORDINAL_POSITION + " INTEGER);";
 }
