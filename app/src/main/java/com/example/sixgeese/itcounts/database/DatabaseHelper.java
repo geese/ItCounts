@@ -25,17 +25,17 @@ import static com.example.sixgeese.itcounts.database.DatabaseConstantsAndStrings
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = DatabaseHelper.class.getSimpleName();
-    private static int countCreation = 0;
+    //private static int countCreation = 0;
 
     private SQLiteDatabase mWritableDB;
     private SQLiteDatabase mReadableDB;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        countCreation++;
-        if (countCreation == 0){
-            fillDatabaseWithData();
-        }
+        fillDatabaseWithData();
+        /*if (countCreation++ == 0){
+
+        }*/
     }
 
 
@@ -574,7 +574,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             //insertThing("Practice Hindemith");
 
-            insertThingSet(titles[0], 2018, 3, 22, 11, 0);
+            /*insertThingSet(titles[0], 2018, 3, 22, 11, 0);
             insertThingSet(titles[0], 2018, 3, 17, 15, 0);
             insertThingSet(titles[0], 2018, 3, 17, 9, 1);
             insertThingSet(titles[0], 2018, 3, 17, 3, 2);
@@ -587,7 +587,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             insertThingSet(titles[1], 2018, 2, 24, 6, 0);
             insertThingSet(titles[1], 2018, 2, 24, 12, 1);
             insertThingSet(titles[2], 2018, 2, 23, 10000, 0);
-            insertThingSet(titles[2], 2018, 2, 23, 10500, 1);
+            insertThingSet(titles[2], 2018, 2, 23, 10500, 1);*/
         } catch (Exception e) {
             e.printStackTrace();
         }

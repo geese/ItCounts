@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.example.sixgeese.itcounts.DayDetailActivity;
 import com.example.sixgeese.itcounts.R;
 import com.example.sixgeese.itcounts.model.ThingSet;
+import com.example.sixgeese.itcounts.utility.ThingSetTextWatcher;
 
 import java.util.ArrayList;
 import java.util.function.ToDoubleBiFunction;
@@ -77,8 +78,11 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         return viewHolder;
     }
 
+
+    //https://stackoverflow.com/questions/37915677/how-to-get-the-edit-text-position-from-recycler-view-adapter-using-text-watcher
     @Override
-    public void onBindViewHolder(ThingSetViewHolder holder, final int position) {
+    public void onBindViewHolder(ThingSetViewHolder holder, int position) {
+        Log.d("dash", "onBindViewHolder: ");
         if (position == thingSets.size()){
             holder.addSetButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -93,31 +97,12 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         } else {
             ThingSet theSet = thingSets.get(position);
             holder.txvSetNumber.setText(context.getString(R.string.set_number, new Object[]{position + 1}));
-            holder.txvSetNumber.setTag(theSet.getId());
+            //holder.txvSetNumber.setTag(theSet.getId());
+            holder.etxNumReps.setTag(position);
             holder.etxNumReps.setText(String.valueOf(theSet.getReps()));
-
-            holder.etxNumReps.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
-                @Override
-                public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                    //within s, the count characters beginning at start have just replaced old text that had length before.
-                    if (charSequence.length() > 0) {
-                        prefs.edit().putInt(thingMonthId + "position_" + position, Integer.valueOf(charSequence.toString())).apply();
-                        thingSets.get(position).setReps(Integer.valueOf(charSequence.toString()));
-                    } else {
-                        prefs.edit().putInt(thingMonthId + "position_" + position, 0).apply();
-                        thingSets.get(position).setReps(0);
-                    }
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {/*somewhere within s, the text has been changed*/}
-            });
-            Log.d(TAG, "onBindViewHolder: ordinal position: " + theSet.getOrdinalPosition());
-            Log.d(TAG, "onBindViewHolder: thingSetID: " + theSet.getId());
-            Log.d(TAG, "onBindViewHolder: thingMonthID: " + theSet.getThingMonthId());
+            holder.etxNumReps.addTextChangedListener(new ThingSetTextWatcher(
+                    holder.etxNumReps, theSet, thingMonthId, position));
+            Log.d(TAG, "onBindViewHolder: Ordinal Position: " + theSet.getOrdinalPosition());
         }
     }
 
@@ -146,6 +131,8 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
             subRepsButton = itemView.findViewById(R.id.btn_subtractReps);
             addRepsButton = itemView.findViewById(R.id.btn_addReps);
             deleteSetButton = itemView.findViewById(R.id.btn_deleteSet);
+
+            //etxNumReps.addTextChangedListener(new ThingSetTextWatcher(etxNumReps, txvSetNumber));
         }
     }
 }

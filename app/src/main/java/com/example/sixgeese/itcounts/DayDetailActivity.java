@@ -2,6 +2,7 @@ package com.example.sixgeese.itcounts;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
@@ -42,6 +43,11 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
     ArrayList<ThingSet> thingSets;
     ThingSetAdapter adapter;
 
+    String title;
+    int year;
+    int month;
+    int date;
+
     private int thingMonthId;
 
     @Override
@@ -51,14 +57,12 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        String title = getIntent().getStringExtra(KEY_DAY_DETAIL_TITLE);
-        int year = getIntent().getIntExtra(KEY_DAY_DETAIL_YEAR, -1);
-        int month = getIntent().getIntExtra(KEY_DAY_DETAIL_MONTH, -1);
-        int date = getIntent().getIntExtra(KEY_DAY_DETAIL_DATE, -1);
+        title = getIntent().getStringExtra(KEY_DAY_DETAIL_TITLE);
+        year = getIntent().getIntExtra(KEY_DAY_DETAIL_YEAR, -1);
+        month = getIntent().getIntExtra(KEY_DAY_DETAIL_MONTH, -1);
+        date = getIntent().getIntExtra(KEY_DAY_DETAIL_DATE, -1);
 
         thingMonthId = getThingMonthId(title, year, month);
-
-        thingSets = new ArrayList<>();
 
         //init_thingSets(); // load with dummy data
 
@@ -72,13 +76,9 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         dayDetailRecyclerView.setLayoutManager(linearLayoutManager);
 
-        Bundle bundle = new Bundle();
-        bundle.putString(KEY_DAY_DETAIL_TITLE, title);
-        bundle.putInt(KEY_DAY_DETAIL_YEAR, year);
-        bundle.putInt(KEY_DAY_DETAIL_MONTH, month);
-        bundle.putInt(KEY_DAY_DETAIL_DATE, date);
-        getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSET,bundle,this); // titles and adapter are set up here
-
+        if (getSupportLoaderManager().getLoader(KEY_ID_LOADER_THINGSET) == null){
+            getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSET,getLoaderBundle(),this); // titles and adapter are set up here
+        }
 
         saveSetsButton = findViewById(R.id.btn_saveSets);
         saveSetsButton.setOnClickListener(new View.OnClickListener() {
@@ -90,6 +90,15 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
 
     }
 
+    @NonNull
+    private Bundle getLoaderBundle() {
+        Bundle bundle = new Bundle();
+        bundle.putString(KEY_DAY_DETAIL_TITLE, title);
+        bundle.putInt(KEY_DAY_DETAIL_YEAR, year);
+        bundle.putInt(KEY_DAY_DETAIL_MONTH, month);
+        bundle.putInt(KEY_DAY_DETAIL_DATE, date);
+        return bundle;
+    }
 
 
     private void saveThingSetsInDatabase() {
@@ -110,35 +119,45 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
         DatabaseHelper db = new DatabaseHelper(this);
 
 
-        //TODO:  fix this logic...
         for (ThingSet theSet : thingSets) {
             //if the set has a record in the database, update it if nonzero reps, delete if zero
             if (theSet.getId() > -1){  //exists in the database
                 if (theSet.getReps() == 0) {
-                    Log.d(TAG, "saveThingSetsInDatabase: set _id:" + theSet.getId());
                     db.deleteThingSet(theSet.getId());
                 } else {
-                    db.updateThingSet(theSet);
+                    long setId = db.updateThingSet(theSet);
                 }
             } else { // there is not yet a record for this set in the database
-                try {
-                    db.insertThingSet(theSet);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (theSet.getReps() > 0){
+                    try {
+                        long setId = db.insertThingSet(theSet);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
+
             }
         }
 
+        // clear the ArrayList, populate it again from database, notify adapter
+        //thingSets.clear();
 
+        getSupportLoaderManager().restartLoader(KEY_ID_LOADER_THINGSET, getLoaderBundle(), this);
 
-        // remove zero-rep sets from ArrayList, clear preferences, and notify adapter
-        for (int i = 0; i < thingSets.size(); i++) {
-            if (thingSets.get(i).getReps() <= 0) {
-                thingSets.remove(i);
-            }
+        /*for (ThingSet theSet : db.getThingSets(title, year, month, date)) {
+            thingSets.add(theSet);
         }
-        prefs.edit().clear().apply(); //TODO:  clear only the relevant preferences, not ALL preferences
-        adapter.notifyDataSetChanged();
+
+        //still want to have one "blank" one waiting...
+        if (thingSets.isEmpty()){
+            ThingSet newSet = new ThingSet(year, month, date);
+            newSet.setThingMonthId(thingMonthId);
+            newSet.setOrdinalPosition(0);
+            thingSets.add(newSet);
+        }
+        adapter.notifyDataSetChanged();*/
+        prefs.edit().clear().commit(); //TODO:  clear only the relevant preferences, not ALL preferences
+
     }
 
     private void init_thingSets(){
@@ -165,9 +184,7 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
 
     @Override
     public void onLoadFinished(Loader<ArrayList<ThingSet>> loader, ArrayList<ThingSet> theSets) {
-        int date = getIntent().getIntExtra(KEY_DAY_DETAIL_DATE, -1);
         thingSets = theSets;
-
         adapter = new ThingSetAdapter(thingSets, this, thingMonthId, date);
         dayDetailRecyclerView.setAdapter(adapter);
     }
