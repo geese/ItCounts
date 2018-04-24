@@ -61,10 +61,7 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
         year = getIntent().getIntExtra(KEY_DAY_DETAIL_YEAR, -1);
         month = getIntent().getIntExtra(KEY_DAY_DETAIL_MONTH, -1);
         date = getIntent().getIntExtra(KEY_DAY_DETAIL_DATE, -1);
-
         thingMonthId = getThingMonthId(title, year, month);
-
-        //init_thingSets(); // load with dummy data
 
         dayDetailTitle = findViewById(R.id.dayDetailTitle);
         dayDetailTitle.setText(title);
@@ -73,12 +70,8 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
         dayDetailDate.setText(getIntent().getStringExtra(KEY_DAY_DETAIL_DATE_STRING));
 
         dayDetailRecyclerView = findViewById(R.id.dayDetailRecyclerView);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        dayDetailRecyclerView.setLayoutManager(linearLayoutManager);
+        dayDetailRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        if (getSupportLoaderManager().getLoader(KEY_ID_LOADER_THINGSET) == null){
-            getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSET,getLoaderBundle(),this); // titles and adapter are set up here
-        }
 
         saveSetsButton = findViewById(R.id.btn_saveSets);
         saveSetsButton.setOnClickListener(new View.OnClickListener() {
@@ -88,36 +81,14 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
             }
         });
 
-    }
-
-    @NonNull
-    private Bundle getLoaderBundle() {
-        Bundle bundle = new Bundle();
-        bundle.putString(KEY_DAY_DETAIL_TITLE, title);
-        bundle.putInt(KEY_DAY_DETAIL_YEAR, year);
-        bundle.putInt(KEY_DAY_DETAIL_MONTH, month);
-        bundle.putInt(KEY_DAY_DETAIL_DATE, date);
-        return bundle;
+        if (getSupportLoaderManager().getLoader(KEY_ID_LOADER_THINGSET) == null){
+            getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSET,getLoaderBundle(),this); // titles and adapter are set up here
+        }
     }
 
 
     private void saveThingSetsInDatabase() {
-        Log.d(TAG, "saveThingSetsInDatabase: size of ArrayList: " + thingSets.size());
-        // send arraylist of sets to database
-
-        // walk though the ArrayList
-        // \__update or delete database records
-        // another walk through the ArrayList
-        // \__remove zero-rep sets
-        // \__clear preferences
-        // \__notifyDataSetChanged
-
-        // delete existing sets if their reps are now zero
-        // \__ also remove zero-rep sets from ArrayList
-        // update existing sets whose reps are greater than zero
-        // insert sets if they don't yet exist
         DatabaseHelper db = new DatabaseHelper(this);
-
 
         for (ThingSet theSet : thingSets) {
             //if the set has a record in the database, update it if nonzero reps, delete if zero
@@ -135,41 +106,15 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
                         e.printStackTrace();
                     }
                 }
-
             }
         }
 
-        // clear the ArrayList, populate it again from database, notify adapter
-        //thingSets.clear();
-
+        // get the refreshed list of ThingSets from the database now that sets have been deleted/updated/inserted
         getSupportLoaderManager().restartLoader(KEY_ID_LOADER_THINGSET, getLoaderBundle(), this);
 
-        /*for (ThingSet theSet : db.getThingSets(title, year, month, date)) {
-            thingSets.add(theSet);
-        }
-
-        //still want to have one "blank" one waiting...
-        if (thingSets.isEmpty()){
-            ThingSet newSet = new ThingSet(year, month, date);
-            newSet.setThingMonthId(thingMonthId);
-            newSet.setOrdinalPosition(0);
-            thingSets.add(newSet);
-        }
-        adapter.notifyDataSetChanged();*/
         prefs.edit().clear().commit(); //TODO:  clear only the relevant preferences, not ALL preferences
 
     }
-
-    private void init_thingSets(){
-        thingSets.add(new ThingSet(2018, 3, 17, 10));
-        thingSets.add(new ThingSet(2018, 3, 17, 11));
-        thingSets.add(new ThingSet(2018, 3, 17, 12));
-
-        thingSets.get(0).setReps(10);
-        thingSets.get(1).setReps(5);
-        thingSets.get(2).setReps(8);
-    }
-
 
 
 
@@ -198,4 +143,28 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
         DatabaseHelper db = new DatabaseHelper(this);
         return db.getThingMonthID(title, year, month);
     }
+
+    @NonNull
+    Bundle getLoaderBundle() {
+        Bundle bundle = new Bundle();
+        bundle.putString(KEY_DAY_DETAIL_TITLE, title);
+        bundle.putInt(KEY_DAY_DETAIL_YEAR, year);
+        bundle.putInt(KEY_DAY_DETAIL_MONTH, month);
+        bundle.putInt(KEY_DAY_DETAIL_DATE, date);
+        return bundle;
+    }
+
+
+    private void init_thingSets(){
+        thingSets.add(new ThingSet(2018, 3, 17, 10));
+        thingSets.add(new ThingSet(2018, 3, 17, 11));
+        thingSets.add(new ThingSet(2018, 3, 17, 12));
+
+        thingSets.get(0).setReps(10);
+        thingSets.get(1).setReps(5);
+        thingSets.get(2).setReps(8);
+    }
+
+
+
 }
