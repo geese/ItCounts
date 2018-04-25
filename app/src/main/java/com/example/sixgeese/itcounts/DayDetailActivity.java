@@ -8,27 +8,26 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.sixgeese.itcounts.database.DatabaseHelper;
 import com.example.sixgeese.itcounts.model.ThingSet;
-import com.example.sixgeese.itcounts.ui.ThingLoader;
-import com.example.sixgeese.itcounts.ui.ThingMonthAdapter;
-import com.example.sixgeese.itcounts.ui.ThingMonthLoader;
 import com.example.sixgeese.itcounts.ui.ThingSetAdapter;
 import com.example.sixgeese.itcounts.ui.ThingSetLoader;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class DayDetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<ThingSet>>{
     private static final String TAG = DayDetailActivity.class.getSimpleName();
 
-    public static final int KEY_ID_LOADER_THINGSET = 2;
+    public static final int KEY_ID_LOADER_THINGSET = 2;  // unique id for this activity's loader
 
     public static final String KEY_DAY_DETAIL_TITLE = "day_detail_title";
     public static final String KEY_DAY_DETAIL_YEAR = "day_detail_year";
@@ -44,18 +43,12 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
     ThingSetAdapter adapter;
 
     String title;
-    int year;
-    int month;
-    int date;
-
-    private int thingMonthId;
+    int year, month, date, thingMonthId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_day_detail);
-
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         title = getIntent().getStringExtra(KEY_DAY_DETAIL_TITLE);
         year = getIntent().getIntExtra(KEY_DAY_DETAIL_YEAR, -1);
@@ -63,34 +56,57 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
         date = getIntent().getIntExtra(KEY_DAY_DETAIL_DATE, -1);
         thingMonthId = getThingMonthId(title, year, month);
 
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        saveSetsButton = findViewById(R.id.btn_saveSets);
         dayDetailTitle = findViewById(R.id.dayDetailTitle);
-        dayDetailTitle.setText(title);
-
         dayDetailDate = findViewById(R.id.dayDetailDate);
-        dayDetailDate.setText(getIntent().getStringExtra(KEY_DAY_DETAIL_DATE_STRING));
-
         dayDetailRecyclerView = findViewById(R.id.dayDetailRecyclerView);
+
+        dayDetailTitle.setText(title);
+        dayDetailDate.setText(getIntent().getStringExtra(KEY_DAY_DETAIL_DATE_STRING));
         dayDetailRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-
-        saveSetsButton = findViewById(R.id.btn_saveSets);
         saveSetsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                saveThingSetsInDatabase();
+                Log.d(TAG, "onClick: thingSets.size()=" + thingSets.size());
+                clickSaveButton(thingSets);
             }
         });
 
+        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf
+        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-6a6f0c422efd
+
+
+
+        // here is where the adapter gets created and attached to the RecyclerView
+        // also where the ArrayList<ThingSet> thingSets gets loaded from the database
         if (getSupportLoaderManager().getLoader(KEY_ID_LOADER_THINGSET) == null){
-            getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSET,getLoaderBundle(),this); // titles and adapter are set up here
+            getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSET,getLoaderBundle(),this);
         }
     }
 
 
-    private void saveThingSetsInDatabase() {
+    // disables EditTexts in the RecyclerView while it's in action mode
+    // called from ThingSetAdapter.java
+    public void noticeMultiSelect(boolean multiSelect) {
+        int numItems = dayDetailRecyclerView.getChildCount() - 1; // minus the last one, which is the "add another set" button
+
+        for (int i = 0; i < numItems; i++) {
+            EditText et = (EditText)(dayDetailRecyclerView.getChildAt(i).findViewWithTag(ThingSetAdapter.THIS_IS_AN_EDIT_TEXT));
+            if (multiSelect)
+                et.setEnabled(false);
+            else
+                et.setEnabled(true);
+        }
+    }
+
+
+    // currently this is only called from the Save button
+    private void clickSaveButton(ArrayList<ThingSet> theSets) {
         DatabaseHelper db = new DatabaseHelper(this);
 
-        for (ThingSet theSet : thingSets) {
+        for (ThingSet theSet : theSets) {
             //if the set has a record in the database, update it if nonzero reps, delete if zero
             if (theSet.getId() > -1){  //exists in the database
                 if (theSet.getReps() == 0) {
@@ -113,7 +129,17 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
         getSupportLoaderManager().restartLoader(KEY_ID_LOADER_THINGSET, getLoaderBundle(), this);
 
         prefs.edit().clear().commit(); //TODO:  clear only the relevant preferences, not ALL preferences
+    }
 
+    public void deleteThingSets(ArrayList<ThingSet> setsToDelete) {
+        DatabaseHelper db = new DatabaseHelper(this);
+
+        for (ThingSet theSet : setsToDelete) {
+            //if the set has a record in the database, delete it
+            if (theSet.getId() > -1) {  //exists in the database
+                db.deleteThingSet(theSet.getId());
+            }
+        }
     }
 
 
@@ -129,7 +155,7 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
 
     @Override
     public void onLoadFinished(Loader<ArrayList<ThingSet>> loader, ArrayList<ThingSet> theSets) {
-        thingSets = theSets;
+        thingSets = theSets;  // now it's an ArrayList loaded from the database
         adapter = new ThingSetAdapter(thingSets, this, thingMonthId, date);
         dayDetailRecyclerView.setAdapter(adapter);
     }
@@ -155,6 +181,7 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
     }
 
 
+    //this is for dummy data
     private void init_thingSets(){
         thingSets.add(new ThingSet(2018, 3, 17, 10));
         thingSets.add(new ThingSet(2018, 3, 17, 11));

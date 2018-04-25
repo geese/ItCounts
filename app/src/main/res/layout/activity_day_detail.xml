@@ -31,13 +31,18 @@
         android:paddingEnd="4dp"
         android:paddingStart="4dp">
 
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5" />
+
         <TextView
             android:id="@+id/textView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
             android:gravity="center_horizontal"
-            android:text="Sets"
+            android:text="@string/sets"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 
@@ -51,10 +56,6 @@
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
     </LinearLayout>
 
 

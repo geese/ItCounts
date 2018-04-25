@@ -23,6 +23,14 @@
         <!--    focusableInTouchMode="true" on parent of EditText (LinearLayout)
                 prevents the EditText from gaining focus on start of activity -->
 
+        <ImageView
+            android:id="@+id/thingSetDragHandle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight=".5"
+            android:src="@drawable/ic_reorder_24dp" />
+
         <TextView
             android:id="@+id/set_number"
             android:layout_width="0dp"
@@ -56,15 +64,6 @@
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:src="@drawable/ic_add_black_24dp" />
-
-        <ImageButton
-            android:id="@+id/btn_deleteSet"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_clear_red_24dp" />
 
     </LinearLayout>
 

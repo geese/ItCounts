@@ -525,7 +525,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             } catch (Exception e) {
                 Log.d(TAG, "EXCEPTION! " + e.getMessage());
             } finally {
-                cursor.close();
+                if (cursor != null){
+                    cursor.close();
+                }
             }
         }
         return thingSets;

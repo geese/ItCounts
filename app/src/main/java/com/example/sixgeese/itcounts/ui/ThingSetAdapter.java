@@ -7,8 +7,6 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.support.v7.view.ActionMode;
 import android.view.LayoutInflater;
@@ -24,9 +22,11 @@ import android.widget.TextView;
 import com.example.sixgeese.itcounts.DayDetailActivity;
 import com.example.sixgeese.itcounts.R;
 import com.example.sixgeese.itcounts.model.ThingSet;
+import com.example.sixgeese.itcounts.utility.DecrementRepsListener;
+import com.example.sixgeese.itcounts.utility.IncrementRepsListener;
 import com.example.sixgeese.itcounts.utility.ThingSetTextWatcher;
+
 import java.util.ArrayList;
-import java.util.function.ToDoubleBiFunction;
 
 /**
  * Created by sixge on 4/17/2018.
@@ -37,17 +37,18 @@ import java.util.function.ToDoubleBiFunction;
 public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingSetViewHolder> {
     private static final String TAG = ThingSetAdapter.class.getSimpleName();
 
+    public static final String THIS_IS_AN_EDIT_TEXT = "this is an EditText";
+
     private Context context;
     private SharedPreferences prefs;
-
-    private int thingMonthId;
-    private int date;
-
     private ArrayList<ThingSet> thingSets;
     private ArrayList<ThingSet> selectedSets;
 
-    private boolean multiSelect = false;
+    private int date, thingMonthId;
+    private boolean multiSelect = false;  // used for CAB (Contextual Action Bar)
 
+
+    // for CAB
     private ActionMode.Callback actionModeCallbacks = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -61,8 +62,10 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            for (ThingSet thingSet : selectedSets) {
-                selectedSets.remove(thingSet);
+            thingSets.removeAll(selectedSets);
+            ((DayDetailActivity)context).deleteThingSets(selectedSets);
+            for(int i = 0; i < thingSets.size(); i++){
+                thingSets.get(i).setOrdinalPosition(i);
             }
             mode.finish();
             return true;
@@ -71,10 +74,16 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             multiSelect = false;
+            ((DayDetailActivity)context).noticeMultiSelect(multiSelect); // sets EditTexts back to enabled=true
             selectedSets.clear();
+            if (thingSets.isEmpty()){
+                addBlankThingSet();
+            }
             notifyDataSetChanged();
         }
     };
+
+
 
     public ThingSetAdapter(ArrayList<ThingSet> thingSets, Context context, int thingMonthId, int date){
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -87,11 +96,15 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
 
         // this way there's always one waiting to be edited
         if (thingSets.isEmpty()){
-            ThingSet newSet = new ThingSet(-1, -1, date);
-            newSet.setThingMonthId(thingMonthId);
-            newSet.setOrdinalPosition(thingSets.size());
-            thingSets.add(newSet);
+            addBlankThingSet();
         }
+    }
+
+    private void addBlankThingSet() {
+        ThingSet newSet = new ThingSet(-1, -1, date); // needs to carry the date info
+        newSet.setThingMonthId(thingMonthId);
+        newSet.setOrdinalPosition(thingSets.size());  // zero because it's the only one in the list right now
+        thingSets.add(newSet);
     }
 
 
@@ -125,24 +138,45 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
             holder.addSetButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    ThingSet newSet = new ThingSet(-1, -1, date);
-                    newSet.setThingMonthId(thingMonthId);
-                    newSet.setOrdinalPosition(thingSets.size());
-                    thingSets.add(newSet);
+                    addBlankThingSet();
                     notifyItemInserted(thingSets.size()+1);
                 }
             });
         } else {
             ThingSet theSet = thingSets.get(position);
-            holder.update(theSet);
             holder.txvSetNumber.setText(context.getString(R.string.set_number, new Object[]{position + 1}));
             //holder.txvSetNumber.setTag(theSet.getId());
-            holder.etxNumReps.setTag(position);
+            holder.etxNumReps.setTag(THIS_IS_AN_EDIT_TEXT);
             holder.etxNumReps.setText(String.valueOf(theSet.getReps()));
-            holder.etxNumReps.addTextChangedListener(new ThingSetTextWatcher(
-                    holder.etxNumReps, theSet, thingMonthId, position));
+            holder.etxNumReps.setSelectAllOnFocus(true);
+            holder.etxNumReps.addTextChangedListener(new ThingSetTextWatcher(holder.etxNumReps, theSet, thingMonthId, position));
+
+            setClearZeroTextOnFocus(holder);
+
+            holder.addRepsButton.setOnClickListener(new IncrementRepsListener(holder.etxNumReps, theSet));
+            holder.subRepsButton.setOnClickListener(new DecrementRepsListener(holder.etxNumReps, theSet));
+
+            holder.update(theSet);
         }
 
+    }
+
+    private void setClearZeroTextOnFocus(ThingSetViewHolder holder) {
+        holder.etxNumReps.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                String repsString = ((EditText)view).getText().toString();
+                if (hasFocus){
+                    if (repsString.isEmpty() || Integer.valueOf(repsString) == 0){
+                        ((EditText)view).setText("");
+                    }
+                } else { //lost focus
+                    if (repsString.isEmpty()){
+                        ((EditText)view).setText("0");
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -152,11 +186,11 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
 
     public class ThingSetViewHolder extends RecyclerView.ViewHolder {
 
-        private ThingSetAdapter parentAdapter;
+        ThingSetAdapter parentAdapter;
         LinearLayout linearLayout;
         CardView cardView;
         Button addSetButton;
-        ImageButton subRepsButton, addRepsButton, deleteSetButton;
+        ImageButton subRepsButton, addRepsButton;
         TextView txvSetNumber;
         EditText etxNumReps;
 
@@ -171,26 +205,31 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
             etxNumReps = itemView.findViewById(R.id.etx_numReps);
             subRepsButton = itemView.findViewById(R.id.btn_subtractReps);
             addRepsButton = itemView.findViewById(R.id.btn_addReps);
-            deleteSetButton = itemView.findViewById(R.id.btn_deleteSet);
         }
 
         void update(final ThingSet thingSet) {
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            Log.d(TAG, "update: " + "\nReps: " + thingSet.getReps() + "\nitemView class: " + itemView.getClass().getSimpleName());
+
+            linearLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
                     ((AppCompatActivity)view.getContext()).startSupportActionMode(actionModeCallbacks);
+                    ((DayDetailActivity)context).noticeMultiSelect(multiSelect);  // disables EditTexts while in ActionMode
                     selectItem(thingSet);
                     return true;
                 }
             });
-            itemView.setOnClickListener(new View.OnClickListener() {
+            linearLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    Log.d(TAG, "onClick: selectedSets contains item: " + (selectedSets.contains(thingSet)));
+                    Log.d(TAG, "onClick: clicked");
                     selectItem(thingSet);
                 }
             });
 
+            // ensures the shading makes sense after leaving action mode
             if (selectedSets.contains(thingSet)) {
                 cardView.setBackgroundColor(Color.LTGRAY);
             } else {
@@ -199,6 +238,7 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         }
 
         void selectItem(ThingSet item) {
+            Log.d(TAG, "selectItem: ");
             if (multiSelect) {
                 if (selectedSets.contains(item)) {
                     selectedSets.remove(item);
