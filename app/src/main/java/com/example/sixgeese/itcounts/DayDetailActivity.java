@@ -20,11 +20,15 @@ import com.example.sixgeese.itcounts.database.DatabaseHelper;
 import com.example.sixgeese.itcounts.model.ThingSet;
 import com.example.sixgeese.itcounts.ui.ThingSetAdapter;
 import com.example.sixgeese.itcounts.ui.ThingSetLoader;
+import com.example.sixgeese.itcounts.utility.ItemTouchHelperAdapter;
+import com.example.sixgeese.itcounts.utility.OnStartDragListener;
+import com.example.sixgeese.itcounts.utility.ThingSetItemTouchHelperCallback;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class DayDetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<ThingSet>>{
+public class DayDetailActivity extends AppCompatActivity
+        implements LoaderManager.LoaderCallbacks<ArrayList<ThingSet>>, OnStartDragListener {
     private static final String TAG = DayDetailActivity.class.getSimpleName();
 
     public static final int KEY_ID_LOADER_THINGSET = 2;  // unique id for this activity's loader
@@ -36,6 +40,7 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
     public static final String KEY_DAY_DETAIL_DATE_STRING = "day_detail_date_string";
 
     SharedPreferences prefs;
+    ItemTouchHelper itemTouchHelper;
     TextView dayDetailTitle, dayDetailDate;
     Button saveSetsButton;
     RecyclerView dayDetailRecyclerView;
@@ -74,8 +79,7 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
             }
         });
 
-        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf
-        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-6a6f0c422efd
+
 
 
 
@@ -158,6 +162,14 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
         thingSets = theSets;  // now it's an ArrayList loaded from the database
         adapter = new ThingSetAdapter(thingSets, this, thingMonthId, date);
         dayDetailRecyclerView.setAdapter(adapter);
+
+        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf
+        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-6a6f0c422efd
+
+        ItemTouchHelper.Callback callback =
+                new ThingSetItemTouchHelperCallback(adapter);
+        itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(dayDetailRecyclerView);
     }
 
     @Override
@@ -193,5 +205,8 @@ public class DayDetailActivity extends AppCompatActivity implements LoaderManage
     }
 
 
-
+    @Override
+    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+        itemTouchHelper.startDrag(viewHolder);
+    }
 }

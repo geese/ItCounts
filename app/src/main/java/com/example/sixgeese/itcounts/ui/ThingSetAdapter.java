@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -12,11 +13,13 @@ import android.support.v7.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.example.sixgeese.itcounts.DayDetailActivity;
@@ -24,9 +27,12 @@ import com.example.sixgeese.itcounts.R;
 import com.example.sixgeese.itcounts.model.ThingSet;
 import com.example.sixgeese.itcounts.utility.DecrementRepsListener;
 import com.example.sixgeese.itcounts.utility.IncrementRepsListener;
+import com.example.sixgeese.itcounts.utility.ItemTouchHelperAdapter;
+import com.example.sixgeese.itcounts.utility.OnStartDragListener;
 import com.example.sixgeese.itcounts.utility.ThingSetTextWatcher;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by sixge on 4/17/2018.
@@ -34,13 +40,16 @@ import java.util.ArrayList;
 
 
 
-public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingSetViewHolder> {
+public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingSetViewHolder>
+                                                            implements ItemTouchHelperAdapter {
+
     private static final String TAG = ThingSetAdapter.class.getSimpleName();
 
     public static final String THIS_IS_AN_EDIT_TEXT = "this is an EditText";
 
     private Context context;
     private SharedPreferences prefs;
+    private OnStartDragListener startDragListener;
     private ArrayList<ThingSet> thingSets;
     private ArrayList<ThingSet> selectedSets;
 
@@ -85,9 +94,11 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
 
 
 
-    public ThingSetAdapter(ArrayList<ThingSet> thingSets, Context context, int thingMonthId, int date){
+    public ThingSetAdapter(ArrayList<ThingSet> thingSets, Context context, int thingMonthId, int date
+                           /*,OnStartDragListener startDragListener*/){
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         selectedSets = new ArrayList<>();
+        this.startDragListener = (OnStartDragListener)context;
 
         this.context = context;
         this.thingSets= thingSets;
@@ -132,7 +143,7 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
 
     //https://stackoverflow.com/questions/37915677/how-to-get-the-edit-text-position-from-recycler-view-adapter-using-text-watcher
     @Override
-    public void onBindViewHolder(ThingSetViewHolder holder, int position) {
+    public void onBindViewHolder(final ThingSetViewHolder holder, int position) {
 
         if (position == thingSets.size()){
             holder.addSetButton.setOnClickListener(new View.OnClickListener() {
@@ -157,6 +168,17 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
             holder.subRepsButton.setOnClickListener(new DecrementRepsListener(holder.etxNumReps, theSet));
 
             holder.update(theSet);
+
+            holder.handle.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    if (motionEvent.getActionMasked() ==
+                            MotionEvent.ACTION_DOWN) {
+                        startDragListener.onStartDrag(holder);
+                    }
+                    return false;
+                }
+            });
         }
 
     }
@@ -184,6 +206,30 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         return thingSets.size() + 1;  //plus 1 is because there is an extra view at the end for the addSet button
     }
 
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition) {
+
+        //the very last position is off limits because it's the Add Another Set button
+        if (toPosition == thingSets.size()){
+            toPosition--;
+        }
+
+
+        if (fromPosition < toPosition) {
+            for (int i = fromPosition; i < toPosition; i++) {
+                Collections.swap(thingSets, i, i + 1);
+            }
+        } else {
+            for (int i = fromPosition; i > toPosition; i--) {
+                Collections.swap(thingSets, i, i - 1);
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
+    }
+
+
+
     public class ThingSetViewHolder extends RecyclerView.ViewHolder {
 
         ThingSetAdapter parentAdapter;
@@ -191,6 +237,7 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         CardView cardView;
         Button addSetButton;
         ImageButton subRepsButton, addRepsButton;
+        ImageView handle;
         TextView txvSetNumber;
         EditText etxNumReps;
 
@@ -198,6 +245,7 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         public ThingSetViewHolder(View itemView, ThingSetAdapter adapter) {
             super(itemView);
             parentAdapter = adapter;
+            handle = itemView.findViewById(R.id.thingSetDragHandle);
             addSetButton = itemView.findViewById(R.id.btn_addSet);
             cardView = itemView.findViewById(R.id.dayDetailSetLayout);
             linearLayout = itemView.findViewById(R.id.dayDetailSetItem_LinearLayout);
