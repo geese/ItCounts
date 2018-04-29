@@ -18,13 +18,15 @@ public class ThingSetTextWatcher implements TextWatcher{
 
     private ThingSet theSet;
     private EditText numRepsEditText;
+    private SharedPreferences prefs;
     private int position;
     private int thingMonthId;
 
 
-    public ThingSetTextWatcher(EditText editText, ThingSet thingSet, int thingMonthId, int position){
+    public ThingSetTextWatcher(EditText editText, ThingSet thingSet, int thingMonthId, int position, SharedPreferences prefs){
         this.numRepsEditText = editText;
         this.theSet = thingSet;
+        this.prefs = prefs;
         this.thingMonthId = thingMonthId;
         this.position = position;
     }

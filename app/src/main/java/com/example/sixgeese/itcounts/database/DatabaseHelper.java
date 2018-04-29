@@ -517,7 +517,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                                 year, month, date);
                         thingSet.setId(cursor.getInt(0)); //_id
                         thingSet.setReps(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_REPS)));
-                        thingSet.setOrdinalPosition(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_ORDINAL_POSITION)));
+                        thingSet.setOrdinalPosition(cursor.getPosition()); // this should eliminate gaps in the ordinal numbering
+                        //thingSet.setOrdinalPosition(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_ORDINAL_POSITION)));
                         thingSet.setThingMonthId(cursor.getInt(cursor.getColumnIndex(COLUMN_THINGSET_MONTH_ID)));
                         thingSets.add(thingSet);
                     } while (cursor.moveToNext());

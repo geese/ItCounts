@@ -40,11 +40,6 @@ public class ThingSetLoader extends AsyncTaskLoader<ArrayList<ThingSet>> {
         DatabaseHelper db = new DatabaseHelper(context);
         ArrayList<ThingSet> thingSets = db.getThingSets(title, year, month, date);
 
-        // keep the same order, but eliminate gaps in the ordinal position numbering
-        for (ThingSet theSet : thingSets) {
-            theSet.setOrdinalPosition(thingSets.indexOf(theSet));
-        }
-
         return thingSets;
     }
 

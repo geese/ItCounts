@@ -5,12 +5,14 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.support.v4.util.ArraySet;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,18 +22,20 @@ import com.example.sixgeese.itcounts.database.DatabaseHelper;
 import com.example.sixgeese.itcounts.model.ThingSet;
 import com.example.sixgeese.itcounts.ui.ThingSetAdapter;
 import com.example.sixgeese.itcounts.ui.ThingSetLoader;
-import com.example.sixgeese.itcounts.utility.ItemTouchHelperAdapter;
 import com.example.sixgeese.itcounts.utility.OnStartDragListener;
 import com.example.sixgeese.itcounts.utility.ThingSetItemTouchHelperCallback;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
 
 public class DayDetailActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<ArrayList<ThingSet>>, OnStartDragListener {
     private static final String TAG = DayDetailActivity.class.getSimpleName();
 
     public static final int KEY_ID_LOADER_THINGSET = 2;  // unique id for this activity's loader
+    public static final String KEY_SAVED_THINGSETS = "ThingSetsArrayList";
 
     public static final String KEY_DAY_DETAIL_TITLE = "day_detail_title";
     public static final String KEY_DAY_DETAIL_YEAR = "day_detail_year";
@@ -79,15 +83,48 @@ public class DayDetailActivity extends AppCompatActivity
             }
         });
 
-
-
-
-
         // here is where the adapter gets created and attached to the RecyclerView
         // also where the ArrayList<ThingSet> thingSets gets loaded from the database
-        if (getSupportLoaderManager().getLoader(KEY_ID_LOADER_THINGSET) == null){
+        //if (getSupportLoaderManager().getLoader(KEY_ID_LOADER_THINGSET) == null){
+        if (savedInstanceState == null) { //activity is being created for the first time
             getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSET,getLoaderBundle(),this);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putParcelableArrayList(KEY_SAVED_THINGSETS, thingSets);
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Always call the superclass so it can restore the view hierarchy
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restore state members from saved instance
+        thingSets = savedInstanceState.getParcelableArrayList(KEY_SAVED_THINGSETS);
+
+        setupAdapter();
+    }
+
+    private void setupAdapter() {
+        adapter = new ThingSetAdapter(thingSets, this, thingMonthId, date);
+        dayDetailRecyclerView.setAdapter(adapter);
+
+        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf
+        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-6a6f0c422efd
+
+        ItemTouchHelper.Callback callback =
+                new ThingSetItemTouchHelperCallback(adapter);
+        itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(dayDetailRecyclerView);
     }
 
 
@@ -114,7 +151,7 @@ public class DayDetailActivity extends AppCompatActivity
             //if the set has a record in the database, update it if nonzero reps, delete if zero
             if (theSet.getId() > -1){  //exists in the database
                 if (theSet.getReps() == 0) {
-                    db.deleteThingSet(theSet.getId());
+                    db.deleteThingSet(theSet.getId()); // this puts gaps in ordinal positioning in database, but that gets reset in db.getThingSets
                 } else {
                     long setId = db.updateThingSet(theSet);
                 }
@@ -129,10 +166,15 @@ public class DayDetailActivity extends AppCompatActivity
             }
         }
 
-        // get the refreshed list of ThingSets from the database now that sets have been deleted/updated/inserted
-        getSupportLoaderManager().restartLoader(KEY_ID_LOADER_THINGSET, getLoaderBundle(), this);
+        prefs.edit().remove("ThingMonth" + thingMonthId).apply();
 
-        prefs.edit().clear().commit(); //TODO:  clear only the relevant preferences, not ALL preferences
+        // get the refreshed list of ThingSets from the database now that sets have been deleted/updated/inserted
+        restartLoader();
+
+    }
+
+    private void restartLoader() {
+        getSupportLoaderManager().restartLoader(KEY_ID_LOADER_THINGSET, getLoaderBundle(), this);
     }
 
     public void deleteThingSets(ArrayList<ThingSet> setsToDelete) {
@@ -160,16 +202,7 @@ public class DayDetailActivity extends AppCompatActivity
     @Override
     public void onLoadFinished(Loader<ArrayList<ThingSet>> loader, ArrayList<ThingSet> theSets) {
         thingSets = theSets;  // now it's an ArrayList loaded from the database
-        adapter = new ThingSetAdapter(thingSets, this, thingMonthId, date);
-        dayDetailRecyclerView.setAdapter(adapter);
-
-        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf
-        //https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-6a6f0c422efd
-
-        ItemTouchHelper.Callback callback =
-                new ThingSetItemTouchHelperCallback(adapter);
-        itemTouchHelper = new ItemTouchHelper(callback);
-        itemTouchHelper.attachToRecyclerView(dayDetailRecyclerView);
+        setupAdapter();
     }
 
     @Override
@@ -209,4 +242,23 @@ public class DayDetailActivity extends AppCompatActivity
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
         itemTouchHelper.startDrag(viewHolder);
     }
+
+    // MAY NOT NEED THIS
+    private void sortThingSetStringsByOrdinalPosition(ArrayList<String> listOfThingSetStrings) {
+    /*   -1 : o1 < o2,  0 : o1 == o2, +1 : o1 > o2   */
+        Collections.sort(listOfThingSetStrings, new Comparator<String>() {
+            @Override
+            public int compare(String first, String second) {
+                String[] firstSplit = first.split(":ordinal:");
+                String[] secondSplit = second.split(":ordinal:");
+                int firstInt = Integer.valueOf(firstSplit[firstSplit.length-1]);
+                int secondInt = Integer.valueOf(secondSplit[secondSplit.length-1]);
+
+                if (firstInt == secondInt) return 0;
+                else return (firstInt < secondInt) ? -1 : 1;
+            }
+        });
+    }
+
+
 }

@@ -33,6 +33,7 @@ import com.example.sixgeese.itcounts.utility.ThingSetTextWatcher;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by sixge on 4/17/2018.
@@ -73,10 +74,11 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             thingSets.removeAll(selectedSets);
             ((DayDetailActivity)context).deleteThingSets(selectedSets);
-            for(int i = 0; i < thingSets.size(); i++){
-                thingSets.get(i).setOrdinalPosition(i);
-            }
+
             mode.finish();
+            /*for(int i = 0; i < thingSets.size(); i++){
+                thingSets.get(i).setOrdinalPosition(i);
+            }*/
             return true;
         }
 
@@ -114,7 +116,8 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
     private void addBlankThingSet() {
         ThingSet newSet = new ThingSet(-1, -1, date); // needs to carry the date info
         newSet.setThingMonthId(thingMonthId);
-        newSet.setOrdinalPosition(thingSets.size());  // zero because it's the only one in the list right now
+        newSet.setOrdinalPosition(thingSets.size());
+        //prefs.edit().putInt(thingMonthId + "position_0", 0).apply();
         thingSets.add(newSet);
     }
 
@@ -140,6 +143,20 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         return viewHolder;
     }
 
+    //https://stackoverflow.com/questions/33176336/need-an-example-about-recyclerview-adapter-notifyitemchangedint-position-objec/38796098
+    // Update only part of ViewHolder that you are interested in
+    // Invoked before onBindViewHolder(ViewHolder holder, int position)
+    @Override
+    public void onBindViewHolder(ThingSetViewHolder holder, int position, List<Object> payloads) {
+        if(!payloads.isEmpty()) {
+            if (payloads.get(0) instanceof Integer) {
+                holder.txvSetNumber.setText(String.valueOf(position + 1) + ".");
+                thingSets.get(position).setOrdinalPosition(position);
+            }
+        }else {
+            super.onBindViewHolder(holder,position, payloads);
+        }
+    }
 
     //https://stackoverflow.com/questions/37915677/how-to-get-the-edit-text-position-from-recycler-view-adapter-using-text-watcher
     @Override
@@ -155,12 +172,13 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
             });
         } else {
             ThingSet theSet = thingSets.get(position);
+            theSet.setOrdinalPosition(position);
             holder.txvSetNumber.setText(context.getString(R.string.set_number, new Object[]{position + 1}));
             //holder.txvSetNumber.setTag(theSet.getId());
             holder.etxNumReps.setTag(THIS_IS_AN_EDIT_TEXT);
             holder.etxNumReps.setText(String.valueOf(theSet.getReps()));
             holder.etxNumReps.setSelectAllOnFocus(true);
-            holder.etxNumReps.addTextChangedListener(new ThingSetTextWatcher(holder.etxNumReps, theSet, thingMonthId, position));
+            holder.etxNumReps.addTextChangedListener(new ThingSetTextWatcher(holder.etxNumReps, theSet, thingMonthId, position, prefs));
 
             setClearZeroTextOnFocus(holder);
 
@@ -208,12 +226,13 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
 
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
-
         //the very last position is off limits because it's the Add Another Set button
         if (toPosition == thingSets.size()){
             toPosition--;
         }
 
+        ThingSet fromSet = thingSets.get(fromPosition);
+        ThingSet toSet = thingSets.get(toPosition);
 
         if (fromPosition < toPosition) {
             for (int i = fromPosition; i < toPosition; i++) {
@@ -224,7 +243,10 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
                 Collections.swap(thingSets, i, i - 1);
             }
         }
+
         notifyItemMoved(fromPosition, toPosition);
+        notifyItemChanged(fromPosition, new Integer(0));
+        notifyItemChanged(toPosition, new Integer(0));
         return true;
     }
 
