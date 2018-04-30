@@ -32,7 +32,8 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
     ArrayList<String> origLabelsLower;
     EditText etxSearch;
     String createLabelText = "";
-    ViewGroup.LayoutParams regularLayoutParams;
+    Boolean create = false;
+
 
     //https://stackoverflow.com/questions/40754174/android-implementing-search-filter-to-a-recyclerview
     public SetLabelsAdapter(Context context, ArrayList<String> labels, EditText etxSearch) {
@@ -41,49 +42,52 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
         this.labels = labels;
         this.origLabels = labels;
         this.origLabelsLower = new ArrayList<>();
+        Log.d(TAG, "SetLabelsAdapter: origLabels contains \"\" = " + origLabelsLower.contains(""));
         for (String label : labels) {
             origLabelsLower.add(label.toLowerCase());
         }
 
         etxSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
 
             @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
 
             @Override
             public void afterTextChanged(Editable editable) {
-                // filter your list from your input
-                filter(editable.toString());
                 doCreateLabel(editable.toString());
+                filter(editable.toString());
             }
         });
     }
 
     private void doCreateLabel(String searchText) {
         createLabelText = searchText;
-        if (!origLabelsLower.contains(searchText.toLowerCase())) {
-            Log.d(TAG, "doCreateLabel: nope");
-            notifyItemChanged(0);
-        } else {
-            Log.d(TAG, "doCreateLabel: yep");
+        if (!searchText.isEmpty()) {
+            if (!origLabelsLower.contains(searchText.toLowerCase())) { //yes, create
+                create = true;
+                notifyItemInserted(0);
+            } else {  // now the search text spells out an entire existing label
+                create = false;
+                notifyItemRemoved(0);
+            }
+        }else { // plain search, no create
+            if (create){
+                notifyItemRemoved(0);
+            }
+            create = false;
         }
     }
 
     void filter(String searchText){
         ArrayList<String> temp = new ArrayList();
+        Log.d(TAG, "filter: create = " + create);
         for(String label: origLabels){
-            //or use .equal(text) with you want equal match
-            //use .toLowerCase() for better matches
             if(label.toLowerCase().contains(searchText.toLowerCase())){
                 temp.add(label);
             }
         }
-        //update recyclerview
         updateList(temp);
     }
 
@@ -96,6 +100,7 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
     @Override
     public SetLabelsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View labelView;
+        Log.d(TAG, "onCreateViewHolder: ");
 
         if(viewType == R.layout.create_set_label_item){
             labelView = LayoutInflater.from(parent.getContext()).inflate(R.layout.create_set_label_item, parent, false);
@@ -110,38 +115,30 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
     //https://stackoverflow.com/questions/29106484/how-to-add-a-button-at-the-end-of-recyclerview
     @Override
     public int getItemViewType(int position) {
-        return (position == 0) ? R.layout.create_set_label_item : R.layout.set_label_item;
+        return (create && position == 0) ? R.layout.create_set_label_item : R.layout.set_label_item;
     }
 
-    /*@Override
-    public void onBindViewHolder(SetLabelsViewHolder holder, int position, List<Object> payloads) {
-        if(!payloads.isEmpty()) {
-
-            holder.txvCreateSetLabel.setText(context.getString(R.string.create_label));
-
-        }else {
-            super.onBindViewHolder(holder,position, payloads);
-        }
-    }*/
 
     @Override
     public void onBindViewHolder(SetLabelsAdapter.SetLabelsViewHolder holder, int position) {
-        if (position > 0){
-            regularLayoutParams = holder.itemContainer.getLayoutParams();
-            holder.txvSetLabel.setText(labels.get(position - 1)); // minus one is an offset because of Create Label at position zero.
+        if (!create){
+            holder.txvSetLabel.setText(labels.get(position));
         } else {
-            if (!createLabelText.isEmpty()){
-                holder.itemContainer_create.setLayoutParams(regularLayoutParams);
+            if (position == 0){
+                holder.txvCreateSetLabel.setText(context.getString(R.string.create_label, createLabelText));
             } else {
-                holder.itemContainer_create.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
+                holder.txvSetLabel.setText(labels.get(position-1));// minus one is an offset because of Create Label at position zero.
             }
-            holder.txvCreateSetLabel.setText(context.getString(R.string.create_label, createLabelText));
         }
     }
 
     @Override
     public int getItemCount() {
-        return labels.size() + 1;  // plus 1 is for the extra item "Create Label" at position 0
+        if (create){
+            return labels.size() + 1;  // plus 1 is for the extra item "Create Label" at position 0
+        } else {
+            return labels.size();
+        }
     }
 
 
