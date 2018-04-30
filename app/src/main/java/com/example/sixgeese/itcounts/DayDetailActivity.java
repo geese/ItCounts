@@ -1,5 +1,6 @@
 package com.example.sixgeese.itcounts;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -12,6 +13,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -28,7 +30,10 @@ import com.example.sixgeese.itcounts.utility.ThingSetItemTouchHelperCallback;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class DayDetailActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<ArrayList<ThingSet>>, OnStartDragListener {
@@ -36,12 +41,15 @@ public class DayDetailActivity extends AppCompatActivity
 
     public static final int KEY_ID_LOADER_THINGSET = 2;  // unique id for this activity's loader
     public static final String KEY_SAVED_THINGSETS = "ThingSetsArrayList";
+    public static final String KEY_SETLABELS = "SetLabels_";
+    public static final String KEY_STRING_ARRAYLIST_EXTRA_LABELS = "labels_arrayList";
 
     public static final String KEY_DAY_DETAIL_TITLE = "day_detail_title";
     public static final String KEY_DAY_DETAIL_YEAR = "day_detail_year";
     public static final String KEY_DAY_DETAIL_MONTH = "day_detail_month";
     public static final String KEY_DAY_DETAIL_DATE = "day_detail_date";
     public static final String KEY_DAY_DETAIL_DATE_STRING = "day_detail_date_string";
+    private static final String KEY_THING_ID = "thing_id";
 
     SharedPreferences prefs;
     ItemTouchHelper itemTouchHelper;
@@ -52,7 +60,24 @@ public class DayDetailActivity extends AppCompatActivity
     ThingSetAdapter adapter;
 
     String title;
-    int year, month, date, thingMonthId;
+    int year, month, date, thingMonthId, thingId;
+
+    public void startSetLabelsActivity(View view) {
+        ArrayList<String> labels;
+
+        if (prefs.contains(KEY_SETLABELS + thingId)) {
+            labels = new ArrayList<>(prefs.getStringSet(KEY_SETLABELS + thingId, null));
+            Collections.sort(labels);
+        } else {
+            labels = new ArrayList<String>();
+            labels.add("");
+        }
+
+        Intent intent = new Intent(this, SetLabelsActivity.class);
+        intent.putExtra(KEY_THING_ID, thingId);
+        intent.putStringArrayListExtra(KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels);
+        startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +89,7 @@ public class DayDetailActivity extends AppCompatActivity
         month = getIntent().getIntExtra(KEY_DAY_DETAIL_MONTH, -1);
         date = getIntent().getIntExtra(KEY_DAY_DETAIL_DATE, -1);
         thingMonthId = getThingMonthId(title, year, month);
+        thingId = getThingId(thingMonthId);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         saveSetsButton = findViewById(R.id.btn_saveSets);
@@ -89,12 +115,25 @@ public class DayDetailActivity extends AppCompatActivity
         if (savedInstanceState == null) { //activity is being created for the first time
             getSupportLoaderManager().initLoader(KEY_ID_LOADER_THINGSET,getLoaderBundle(),this);
         }
+
+
+        //https://stackoverflow.com/questions/29980561/add-edittext-to-toolbar
+        if (!prefs.contains(KEY_SETLABELS)){
+            Set<String> setLabels = new HashSet<>();
+            setLabels.add("Sets");
+            setLabels.add("Planks");
+            setLabels.add("Sessions");
+
+            prefs.edit().putStringSet(KEY_SETLABELS + thingId, setLabels).apply();
+        }
+
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
-    }
+    public boolean onCreateOptionsMenu(Menu menu) {return super.onCreateOptionsMenu(menu);}
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {return super.onOptionsItemSelected(item);}
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -215,6 +254,11 @@ public class DayDetailActivity extends AppCompatActivity
         return db.getThingMonthID(title, year, month);
     }
 
+    private int getThingId(int thingMonthId) {
+        DatabaseHelper db = new DatabaseHelper(this);
+        return db.getThingId(thingMonthId);
+    }
+
     @NonNull
     Bundle getLoaderBundle() {
         Bundle bundle = new Bundle();
@@ -259,6 +303,7 @@ public class DayDetailActivity extends AppCompatActivity
             }
         });
     }
+
 
 
 }

@@ -18,13 +18,13 @@
         </activity>
         <activity
             android:name=".CalendarActivity"
-            android:parentActivityName=".MainActivity">
-
-        </activity>
-        <activity android:name=".DayDetailActivity"
-            android:parentActivityName=".MainActivity">
-
-        </activity>
+            android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name=".DayDetailActivity"
+            android:parentActivityName=".MainActivity"
+            android:launchMode="singleTop"/>
+        <activity android:name=".SetLabelsActivity"
+            android:parentActivityName=".DayDetailActivity"/>
     </application>
 
 </manifest>

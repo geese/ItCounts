@@ -248,6 +248,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
    /*    QUERY methods   */
 
+   public int getThingId(int thingMonthId){
+       Cursor cursor = null;
+       int theId = -1;
+
+       try {
+           if (mReadableDB == null) {
+               mReadableDB = getReadableDatabase();
+           }
+           cursor = mReadableDB.query(TABLE_THINGMONTH, new String[]{COLUMN_THINGMONTH_THING_ID}, "_id = " + thingMonthId, null, null, null, null);
+
+           if (cursor.getCount() > 0) {
+               cursor.moveToFirst();
+               theId = cursor.getInt(0);
+           }
+       } catch (Exception e) {
+           Log.d(TAG, "EXCEPTION! " + e.getMessage());
+       } finally {
+           cursor.close();
+           return theId;
+       }
+   }
+
     public int getThingID(String title){
         Cursor cursor = null;
         int theId = -1;

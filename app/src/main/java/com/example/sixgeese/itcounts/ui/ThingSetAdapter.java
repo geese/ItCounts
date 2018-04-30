@@ -139,7 +139,7 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
             thingSetView = LayoutInflater.from(parent.getContext()).inflate(R.layout.day_detail_set, parent, false);
         }
 
-        ThingSetViewHolder viewHolder = new ThingSetViewHolder(thingSetView, this);
+        ThingSetViewHolder viewHolder = new ThingSetViewHolder(thingSetView);
         return viewHolder;
     }
 
@@ -254,7 +254,6 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
 
     public class ThingSetViewHolder extends RecyclerView.ViewHolder {
 
-        ThingSetAdapter parentAdapter;
         LinearLayout linearLayout;
         CardView cardView;
         Button addSetButton;
@@ -264,9 +263,8 @@ public class ThingSetAdapter extends RecyclerView.Adapter<ThingSetAdapter.ThingS
         EditText etxNumReps;
 
 
-        public ThingSetViewHolder(View itemView, ThingSetAdapter adapter) {
+        public ThingSetViewHolder(View itemView) {
             super(itemView);
-            parentAdapter = adapter;
             handle = itemView.findViewById(R.id.thingSetDragHandle);
             addSetButton = itemView.findViewById(R.id.btn_addSet);
             cardView = itemView.findViewById(R.id.dayDetailSetLayout);

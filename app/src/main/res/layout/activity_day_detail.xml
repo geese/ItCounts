@@ -44,7 +44,8 @@
             android:gravity="center_horizontal"
             android:text="@string/sets"
             android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:onClick="startSetLabelsActivity"/>
 
         <TextView
             android:id="@+id/textView2"
@@ -52,7 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="4"
             android:gravity="center_horizontal"
-            android:text="Repetitions"
+            android:text="@string/reps"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 

@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">It Counts</string>
     <string name="set_number">%s.</string>
+    <string name="create_label">Create \"%s\"</string>
     <string name="add_another_set">add another set</string>
     <string name="sets">Sets</string>
+    <string name="edit">Edit</string>
+    <string name="search_prompt">Enter label name</string>
+    <string name="reps">Repetitions</string>
 </resources>
