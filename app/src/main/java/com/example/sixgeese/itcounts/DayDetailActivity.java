@@ -42,6 +42,8 @@ public class DayDetailActivity extends AppCompatActivity
     public static final int KEY_ID_LOADER_THINGSET = 2;  // unique id for this activity's loader
     public static final String KEY_SAVED_THINGSETS = "ThingSetsArrayList";
     public static final String KEY_SETLABELS = "SetLabels_";
+    public static final String KEY_SETSLABEL_THIS_THING = "SetLabelThisThing_";
+    public static final String KEY_REPSLABEL_THIS_THING = "RepsLabelThisThing_";
     public static final String KEY_STRING_ARRAYLIST_EXTRA_LABELS = "labels_arrayList";
 
     public static final String KEY_DAY_DETAIL_TITLE = "day_detail_title";
@@ -49,11 +51,11 @@ public class DayDetailActivity extends AppCompatActivity
     public static final String KEY_DAY_DETAIL_MONTH = "day_detail_month";
     public static final String KEY_DAY_DETAIL_DATE = "day_detail_date";
     public static final String KEY_DAY_DETAIL_DATE_STRING = "day_detail_date_string";
-    private static final String KEY_THING_ID = "thing_id";
+    public static final String KEY_THING_ID = "thing_id";
 
     SharedPreferences prefs;
     ItemTouchHelper itemTouchHelper;
-    TextView dayDetailTitle, dayDetailDate;
+    TextView dayDetailTitle, dayDetailDate, txvSetsLabel, txvRepsLabel;
     Button saveSetsButton;
     RecyclerView dayDetailRecyclerView;
     ArrayList<ThingSet> thingSets;
@@ -73,7 +75,9 @@ public class DayDetailActivity extends AppCompatActivity
             labels.add("");
         }
 
-        Intent intent = new Intent(this, SetLabelsActivity.class);
+        Intent intent = getIntent();
+        intent.setClass(this, SetLabelsActivity.class);
+        //Intent intent = new Intent(this, SetLabelsActivity.class);
         intent.putExtra(KEY_THING_ID, thingId);
         intent.putStringArrayListExtra(KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels);
         startActivity(intent);
@@ -95,10 +99,15 @@ public class DayDetailActivity extends AppCompatActivity
         saveSetsButton = findViewById(R.id.btn_saveSets);
         dayDetailTitle = findViewById(R.id.dayDetailTitle);
         dayDetailDate = findViewById(R.id.dayDetailDate);
+        txvSetsLabel = findViewById(R.id.sets_label_textview);
+        txvRepsLabel = findViewById(R.id.reps_label_textview);
         dayDetailRecyclerView = findViewById(R.id.dayDetailRecyclerView);
 
         dayDetailTitle.setText(title);
         dayDetailDate.setText(getIntent().getStringExtra(KEY_DAY_DETAIL_DATE_STRING));
+        txvSetsLabel.setText(prefs.getString(KEY_SETSLABEL_THIS_THING + thingId, getString(R.string.sets)));
+        txvRepsLabel.setText(prefs.getString(KEY_REPSLABEL_THIS_THING + thingId, getString(R.string.reps)));
+
         dayDetailRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         saveSetsButton.setOnClickListener(new View.OnClickListener() {

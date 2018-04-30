@@ -1,5 +1,6 @@
 package com.example.sixgeese.itcounts;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
@@ -14,6 +15,8 @@ import android.widget.EditText;
 import com.example.sixgeese.itcounts.ui.SetLabelsAdapter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 
 //https://stackoverflow.com/questions/6867076/getactionbar-returns-null
@@ -27,6 +30,7 @@ public class SetLabelsActivity extends AppCompatActivity {
     SetLabelsAdapter adapter;
     ArrayList<String> labels;
     EditText etxSearch;
+    int thingId;
 
 
     @Override
@@ -34,7 +38,8 @@ public class SetLabelsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set_labels);
         setupActionBar();
-
+        //Intent intent = getIntent();
+        thingId = getIntent().getIntExtra(DayDetailActivity.KEY_THING_ID, -1);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         labels = getIntent().getStringArrayListExtra(DayDetailActivity.KEY_STRING_ARRAYLIST_EXTRA_LABELS);
 
@@ -44,6 +49,24 @@ public class SetLabelsActivity extends AppCompatActivity {
         adapter = new SetLabelsAdapter(this, labels, etxSearch);
         setLabelsRecyclerView.setAdapter(adapter);
     }
+
+    public void selectSetLabel(String selection) {
+        prefs.edit().putString(DayDetailActivity.KEY_SETSLABEL_THIS_THING + thingId, selection).apply();
+        Intent intent = getIntent();
+        intent.setClass(this, DayDetailActivity.class);
+        startActivity(intent);
+    }
+
+    public void createSetLabel(String creation) {
+        Set setLabels = prefs.getStringSet(DayDetailActivity.KEY_SETLABELS+thingId, new HashSet());
+        setLabels.add(creation);
+        prefs.edit().putStringSet(DayDetailActivity.KEY_SETLABELS+thingId, setLabels).apply();
+        prefs.edit().putString(DayDetailActivity.KEY_SETSLABEL_THIS_THING + thingId, creation).apply();
+        Intent intent = getIntent();
+        intent.setClass(this, DayDetailActivity.class);
+        startActivity(intent);
+    }
+
 
     private void setupActionBar() {
         // Inflate your custom layout

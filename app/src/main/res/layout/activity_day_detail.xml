@@ -37,7 +37,7 @@
             android:layout_weight=".5" />
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/sets_label_textview"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
@@ -48,7 +48,7 @@
             android:onClick="startSetLabelsActivity"/>
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/reps_label_textview"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="4"

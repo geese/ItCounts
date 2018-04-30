@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.sixgeese.itcounts.R;
+import com.example.sixgeese.itcounts.SetLabelsActivity;
 
 import java.util.ArrayList;
 
@@ -36,7 +37,7 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
 
 
     //https://stackoverflow.com/questions/40754174/android-implementing-search-filter-to-a-recyclerview
-    public SetLabelsAdapter(Context context, ArrayList<String> labels, EditText etxSearch) {
+    public SetLabelsAdapter(SetLabelsActivity context, ArrayList<String> labels, EditText etxSearch) {
         this.context = context;
         this.etxSearch = etxSearch;
         this.labels = labels;
@@ -100,7 +101,6 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
     @Override
     public SetLabelsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View labelView;
-        Log.d(TAG, "onCreateViewHolder: ");
 
         if(viewType == R.layout.create_set_label_item){
             labelView = LayoutInflater.from(parent.getContext()).inflate(R.layout.create_set_label_item, parent, false);
@@ -108,7 +108,7 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
             labelView = LayoutInflater.from(parent.getContext()).inflate(R.layout.set_label_item, parent, false);
         }
 
-        SetLabelsViewHolder viewHolder = new SetLabelsViewHolder(labelView);
+        SetLabelsViewHolder viewHolder = new SetLabelsViewHolder(labelView, context);
         return viewHolder;
     }
 
@@ -150,13 +150,43 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
         private TextView txvSetLabel, txvCreateSetLabel;
         private ImageView imgvAddSetLabel;
 
-        public SetLabelsViewHolder(View itemView) {
+        public SetLabelsViewHolder(View itemView, final Context context) {
             super(itemView);
             itemContainer = itemView.findViewById(R.id.set_label_item_container);
             itemContainer_create = itemView.findViewById(R.id.create_set_label_container);
             txvSetLabel = itemView.findViewById(R.id.a_set_label);
             txvCreateSetLabel = itemView.findViewById(R.id.create_set_label);
             imgvAddSetLabel = itemView.findViewById(R.id.add_set_label);
+
+            if (txvSetLabel != null) {
+                txvSetLabel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        ((SetLabelsActivity) context).selectSetLabel(txvSetLabel.getText().toString());
+                    }
+                });
+            }
+
+            setCreateOnClickListener(txvCreateSetLabel);
+            setCreateOnClickListener(imgvAddSetLabel);
+
+        }
+
+        private void setCreateOnClickListener(View view) {
+            if (view != null) {
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        createSetLabel((SetLabelsActivity) context);
+                    }
+                });
+            }
+
+        }
+
+        private void createSetLabel(SetLabelsActivity context) {
+            String[] split = txvCreateSetLabel.getText().toString().split("\"");
+            context.createSetLabel(split[split.length-1]);
         }
     }
 }
