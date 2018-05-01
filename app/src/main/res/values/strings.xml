@@ -7,4 +7,5 @@
     <string name="edit">Edit</string>
     <string name="search_prompt">Enter label name</string>
     <string name="reps">Repetitions</string>
+    <string name="edit_labels">Edit Labels</string>
 </resources>

@@ -14,7 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.sixgeese.itcounts.R;
-import com.example.sixgeese.itcounts.SetLabelsActivity;
+import com.example.sixgeese.itcounts.RepLabelsActivity;
 
 import java.util.ArrayList;
 
@@ -24,8 +24,8 @@ import java.util.ArrayList;
 
 //https://www.simplifiedcoding.net/search-functionality-recyclerview/#Implementing-Search-Functionality-in-RecyclerView
 
-public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetLabelsViewHolder> {
-    private static final String TAG = SetLabelsAdapter.class.getSimpleName();
+public class RepLabelsAdapter extends RecyclerView.Adapter<RepLabelsAdapter.RepLabelsViewHolder> {
+    private static final String TAG = RepLabelsAdapter.class.getSimpleName();
 
     Context context;
     ArrayList<String> labels;
@@ -37,13 +37,13 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
 
 
     //https://stackoverflow.com/questions/40754174/android-implementing-search-filter-to-a-recyclerview
-    public SetLabelsAdapter(SetLabelsActivity context, ArrayList<String> labels, EditText etxSearch) {
+    public RepLabelsAdapter(RepLabelsActivity context, ArrayList<String> labels, EditText etxSearch) {
         this.context = context;
         this.etxSearch = etxSearch;
         this.labels = labels;
         this.origLabels = labels;
         this.origLabelsLower = new ArrayList<>();
-        Log.d(TAG, "SetLabelsAdapter: origLabels contains \"\" = " + origLabelsLower.contains(""));
+        Log.d(TAG, "RepLabelsAdapter: origLabels contains \"\" = " + origLabelsLower.contains(""));
         for (String label : labels) {
             origLabelsLower.add(label.toLowerCase());
         }
@@ -99,35 +99,35 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
 
 
     @Override
-    public SetLabelsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RepLabelsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View labelView;
 
-        if(viewType == R.layout.create_set_label_item){
-            labelView = LayoutInflater.from(parent.getContext()).inflate(R.layout.create_set_label_item, parent, false);
+        if(viewType == R.layout.create_rep_label_item){
+            labelView = LayoutInflater.from(parent.getContext()).inflate(R.layout.create_rep_label_item, parent, false);
         } else {
-            labelView = LayoutInflater.from(parent.getContext()).inflate(R.layout.set_label_item, parent, false);
+            labelView = LayoutInflater.from(parent.getContext()).inflate(R.layout.rep_label_item, parent, false);
         }
 
-        SetLabelsViewHolder viewHolder = new SetLabelsViewHolder(labelView, context);
+        RepLabelsViewHolder viewHolder = new RepLabelsViewHolder(labelView, context);
         return viewHolder;
     }
 
     //https://stackoverflow.com/questions/29106484/how-to-add-a-button-at-the-end-of-recyclerview
     @Override
     public int getItemViewType(int position) {
-        return (create && position == 0) ? R.layout.create_set_label_item : R.layout.set_label_item;
+        return (create && position == 0) ? R.layout.create_rep_label_item : R.layout.rep_label_item;
     }
 
 
     @Override
-    public void onBindViewHolder(SetLabelsAdapter.SetLabelsViewHolder holder, int position) {
+    public void onBindViewHolder(RepLabelsAdapter.RepLabelsViewHolder holder, int position) {
         if (!create){
-            holder.txvSetLabel.setText(labels.get(position));
+            holder.txvRepLabel.setText(labels.get(position));
         } else {
             if (position == 0){
-                holder.txvCreateSetLabel.setText(context.getString(R.string.create_label, createLabelText));
+                holder.txvCreateRepLabel.setText(context.getString(R.string.create_label, createLabelText));
             } else {
-                holder.txvSetLabel.setText(labels.get(position-1));// minus one is an offset because of Create Label at position zero.
+                holder.txvRepLabel.setText(labels.get(position-1));// minus one is an offset because of Create Label at position zero.
             }
         }
     }
@@ -143,32 +143,32 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
 
 
 
-    public class SetLabelsViewHolder extends RecyclerView.ViewHolder{
+    public class RepLabelsViewHolder extends RecyclerView.ViewHolder{
 
         private LinearLayout itemContainer_create;
         private LinearLayout itemContainer;
-        private TextView txvSetLabel, txvCreateSetLabel;
-        private ImageView imgvAddSetLabel;
+        private TextView txvRepLabel, txvCreateRepLabel;
+        private ImageView imgvAddRepLabel;
 
-        public SetLabelsViewHolder(View itemView, final Context context) {
+        public RepLabelsViewHolder(View itemView, final Context context) {
             super(itemView);
-            itemContainer = itemView.findViewById(R.id.set_label_item_container);
-            itemContainer_create = itemView.findViewById(R.id.create_set_label_container);
-            txvSetLabel = itemView.findViewById(R.id.a_set_label);
-            txvCreateSetLabel = itemView.findViewById(R.id.create_set_label);
-            imgvAddSetLabel = itemView.findViewById(R.id.add_set_label);
+            itemContainer = itemView.findViewById(R.id.rep_label_item_container);
+            itemContainer_create = itemView.findViewById(R.id.create_rep_label_container);
+            txvRepLabel = itemView.findViewById(R.id.a_rep_label);
+            txvCreateRepLabel = itemView.findViewById(R.id.create_rep_label);
+            imgvAddRepLabel = itemView.findViewById(R.id.add_rep_label);
 
-            if (txvSetLabel != null) {
-                txvSetLabel.setOnClickListener(new View.OnClickListener() {
+            if (txvRepLabel != null) {
+                txvRepLabel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        ((SetLabelsActivity) context).selectSetLabel(txvSetLabel.getText().toString());
+                        ((RepLabelsActivity) context).selectRepLabel(txvRepLabel.getText().toString());
                     }
                 });
             }
 
-            setCreateOnClickListener(txvCreateSetLabel);
-            setCreateOnClickListener(imgvAddSetLabel);
+            setCreateOnClickListener(txvCreateRepLabel);
+            setCreateOnClickListener(imgvAddRepLabel);
 
         }
 
@@ -177,7 +177,7 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        createSetLabel((SetLabelsActivity) context);
+                        createRepLabel((RepLabelsActivity) context);
                     }
                 });
             }
@@ -185,9 +185,9 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
         }
 
         //TODO: handle case where the new label contains quotation marks
-        private void createSetLabel(SetLabelsActivity context) {
-            String[] split = txvCreateSetLabel.getText().toString().split("\"");
-            context.createSetLabel(split[split.length-1].trim());
+        private void createRepLabel(RepLabelsActivity context) {
+            String[] split = txvCreateRepLabel.getText().toString().split("\"");
+            context.createRepLabel(split[split.length-1].trim());
         }
     }
 }

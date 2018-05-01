@@ -42,6 +42,7 @@ public class DayDetailActivity extends AppCompatActivity
     public static final int KEY_ID_LOADER_THINGSET = 2;  // unique id for this activity's loader
     public static final String KEY_SAVED_THINGSETS = "ThingSetsArrayList";
     public static final String KEY_SETLABELS = "SetLabels_";
+    public static final String KEY_REPLABELS = "RepLabels_";
     public static final String KEY_SETSLABEL_THIS_THING = "SetLabelThisThing_";
     public static final String KEY_REPSLABEL_THIS_THING = "RepsLabelThisThing_";
     public static final String KEY_STRING_ARRAYLIST_EXTRA_LABELS = "labels_arrayList";
@@ -67,8 +68,8 @@ public class DayDetailActivity extends AppCompatActivity
     public void startSetLabelsActivity(View view) {
         ArrayList<String> labels;
 
-        if (prefs.contains(KEY_SETLABELS + thingId)) {
-            labels = new ArrayList<>(prefs.getStringSet(KEY_SETLABELS + thingId, null));
+        if (prefs.contains(KEY_SETLABELS)) {
+            labels = new ArrayList<>(prefs.getStringSet(KEY_SETLABELS, null));
             Collections.sort(labels);
         } else {
             labels = new ArrayList<String>();
@@ -77,7 +78,24 @@ public class DayDetailActivity extends AppCompatActivity
 
         Intent intent = getIntent();
         intent.setClass(this, SetLabelsActivity.class);
-        //Intent intent = new Intent(this, SetLabelsActivity.class);
+        intent.putExtra(KEY_THING_ID, thingId);
+        intent.putStringArrayListExtra(KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels);
+        startActivity(intent);
+    }
+
+    public void startRepLabelsActivity(View view) {
+        ArrayList<String> labels;
+
+        if (prefs.contains(KEY_REPLABELS)) {
+            labels = new ArrayList<>(prefs.getStringSet(KEY_REPLABELS, null));
+            Collections.sort(labels);
+        } else {
+            labels = new ArrayList<String>();
+            labels.add("");
+        }
+
+        Intent intent = getIntent();
+        intent.setClass(this, RepLabelsActivity.class);
         intent.putExtra(KEY_THING_ID, thingId);
         intent.putStringArrayListExtra(KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels);
         startActivity(intent);
@@ -133,7 +151,16 @@ public class DayDetailActivity extends AppCompatActivity
             setLabels.add("Planks");
             setLabels.add("Sessions");
 
-            prefs.edit().putStringSet(KEY_SETLABELS + thingId, setLabels).apply();
+            prefs.edit().putStringSet(KEY_SETLABELS, setLabels).apply();
+        }
+
+        if (!prefs.contains(KEY_REPLABELS)){
+            Set<String> repLabels = new HashSet<>();
+            repLabels.add("Repetitions");
+            repLabels.add("Seconds");
+            repLabels.add("Ounces");
+
+            prefs.edit().putStringSet(KEY_REPLABELS, repLabels).apply();
         }
 
     }
