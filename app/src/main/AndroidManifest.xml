@@ -29,7 +29,9 @@
         <activity
             android:name=".RepLabelsActivity"
             android:parentActivityName=".DayDetailActivity" />
-        <activity android:name=".EditLabelsActivity"></activity>
+        <activity
+            android:name=".EditLabelsActivity"
+            android:parentActivityName=".DayDetailActivity" />
     </application>
 
 </manifest>

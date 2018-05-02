@@ -1,12 +1,10 @@
 package com.example.sixgeese.itcounts;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -17,6 +15,7 @@ import android.widget.EditText;
 import com.example.sixgeese.itcounts.ui.SetLabelsAdapter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,7 +25,8 @@ import java.util.Set;
 //https://stackoverflow.com/questions/12276027/how-can-i-return-to-a-parent-activity-correctly
 
 public class SetLabelsActivity extends AppCompatActivity {
-
+    public static final String TAG = SetLabelsActivity.class.getSimpleName();
+    
     SharedPreferences prefs;
     RecyclerView setLabelsRecyclerView;
     SetLabelsAdapter adapter;
@@ -43,20 +43,26 @@ public class SetLabelsActivity extends AppCompatActivity {
 
         thingId = getIntent().getIntExtra(DayDetailActivity.KEY_THING_ID, -1);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        labels = getIntent().getStringArrayListExtra(DayDetailActivity.KEY_STRING_ARRAYLIST_EXTRA_LABELS);
 
         setLabelsRecyclerView = findViewById(R.id.set_labels_recyclerview);
         setLabelsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        etxSearch.setText("");
+        getSupportActionBar().getCustomView().findViewById(R.id.mainLayout).requestFocus();
+        Set labelSet = prefs.getStringSet(DayDetailActivity.KEY_SETLABELS, null);
+        labels = new ArrayList(labelSet);
+        Collections.sort(labels);
         adapter = new SetLabelsAdapter(this, labels, etxSearch);
         setLabelsRecyclerView.setAdapter(adapter);
     }
 
     public void selectSetLabel(String selection) {
         prefs.edit().putString(DayDetailActivity.KEY_SETSLABEL_THIS_THING + thingId, selection).apply();
-        Intent intent = getIntent();
-        intent.setClass(this, DayDetailActivity.class);
-        startActivity(intent);
+        startActivity(getIntent().setClass(this, DayDetailActivity.class));
     }
 
     public void createSetLabel(String creation) {
@@ -64,9 +70,7 @@ public class SetLabelsActivity extends AppCompatActivity {
         setLabels.add(creation);
         prefs.edit().putStringSet(DayDetailActivity.KEY_SETLABELS, setLabels).apply();
         prefs.edit().putString(DayDetailActivity.KEY_SETSLABEL_THIS_THING + thingId, creation).apply();
-        Intent intent = getIntent();
-        intent.setClass(this, DayDetailActivity.class);
-        startActivity(intent);
+        startActivity(getIntent().setClass(this, DayDetailActivity.class));
     }
 
     @Override
@@ -76,10 +80,22 @@ public class SetLabelsActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        //getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_clear_white_24dp);
-        return true;
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        switch (menuItem.getItemId()) {
+            case android.R.id.home:
+                finish();
+                //startActivity(getIntent().setClass(this, DayDetailActivity.class));
+                return true;
+            case R.id.edit_menu_item:
+                startActivity(getIntent().setClass(this, EditLabelsActivity.class)
+                    .putExtra(EditLabelsActivity.KEY_EXTRA_LABEL_TYPE, EditLabelsActivity.KEY_EXTRA_LABEL_TYPE_SET)
+                    .putExtra(DayDetailActivity.KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels));
+                return true;
+        }
+        return (true);
     }
+
+
 
     private void setupActionBar() {
         // Inflate your custom layout
@@ -88,7 +104,7 @@ public class SetLabelsActivity extends AppCompatActivity {
 
         // Set up ActionBar
         final ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayShowHomeEnabled(true);
+        actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setHomeButtonEnabled(true);
         actionBar.setDisplayShowTitleEnabled(false);
         actionBar.setDisplayShowCustomEnabled(true);
@@ -97,3 +113,18 @@ public class SetLabelsActivity extends AppCompatActivity {
         etxSearch = actionBarLayout.findViewById(R.id.action_bar_edittext);
     }
 }
+
+
+
+/* @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == EditLabelsActivity.RESULT_SET) {
+            if(resultCode == Activity.RESULT_OK){
+                labels = data.getStringArrayListExtra(DayDetailActivity.KEY_STRING_ARRAYLIST_EXTRA_LABELS);
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
+        }
+    }//onActivityResult*/

@@ -9,6 +9,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -75,12 +77,14 @@ public class ThingListAdapter extends RecyclerView.Adapter<ThingListAdapter.Thin
     }
 
     private void createImageView(ThingListViewHolder holder, final ThingDay thingDay) {
-        ImageView newImageView = new ImageView(context);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT);
+        //ImageView newImageView = new ImageView(context);
+        ImageButton newImageView = new ImageButton(context);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
         params.weight = 1;
         params.gravity = Gravity.CENTER;
         newImageView.setLayoutParams(params);
         newImageView.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_star_black_12dp));
+        newImageView.setBackgroundColor(context.getResources().getColor(android.R.color.white));
         holder.root.addView(newImageView);
 
         newImageView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -96,11 +100,10 @@ public class ThingListAdapter extends RecyclerView.Adapter<ThingListAdapter.Thin
 
     private void createTextView(ThingListViewHolder holder, final ThingDay thingDay) {
         TextView newTextView = new TextView(context);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
         params.weight = 1;
-        params.gravity = Gravity.CENTER;
         newTextView.setLayoutParams(params);
-        newTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        newTextView.setGravity(Gravity.CENTER);
         newTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         newTextView.setSingleLine(true);
         newTextView.setEllipsize(TextUtils.TruncateAt.END);

@@ -5,7 +5,7 @@
     <item
         android1:icon="@drawable/ic_edit_white_24dp"
         android1:id="@+id/edit_menu_item"
-        android:showAsAction="never"
+        android:showAsAction="always"
         android1:title="@string/edit_labels"/>
 
 </menu>

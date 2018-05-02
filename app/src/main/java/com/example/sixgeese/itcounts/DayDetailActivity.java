@@ -79,7 +79,7 @@ public class DayDetailActivity extends AppCompatActivity
         Intent intent = getIntent();
         intent.setClass(this, SetLabelsActivity.class);
         intent.putExtra(KEY_THING_ID, thingId);
-        intent.putStringArrayListExtra(KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels);
+        //intent.putStringArrayListExtra(KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels);
         startActivity(intent);
     }
 
@@ -97,7 +97,7 @@ public class DayDetailActivity extends AppCompatActivity
         Intent intent = getIntent();
         intent.setClass(this, RepLabelsActivity.class);
         intent.putExtra(KEY_THING_ID, thingId);
-        intent.putStringArrayListExtra(KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels);
+        //intent.putStringArrayListExtra(KEY_STRING_ARRAYLIST_EXTRA_LABELS, labels);
         startActivity(intent);
     }
 
@@ -123,8 +123,7 @@ public class DayDetailActivity extends AppCompatActivity
 
         dayDetailTitle.setText(title);
         dayDetailDate.setText(getIntent().getStringExtra(KEY_DAY_DETAIL_DATE_STRING));
-        txvSetsLabel.setText(prefs.getString(KEY_SETSLABEL_THIS_THING + thingId, getString(R.string.sets)));
-        txvRepsLabel.setText(prefs.getString(KEY_REPSLABEL_THIS_THING + thingId, getString(R.string.reps)));
+
 
         dayDetailRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -163,6 +162,14 @@ public class DayDetailActivity extends AppCompatActivity
             prefs.edit().putStringSet(KEY_REPLABELS, repLabels).apply();
         }
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: ");
+        txvSetsLabel.setText(prefs.getString(KEY_SETSLABEL_THIS_THING + thingId, getString(R.string.sets)));
+        txvRepsLabel.setText(prefs.getString(KEY_REPSLABEL_THIS_THING + thingId, getString(R.string.reps)));
     }
 
     @Override

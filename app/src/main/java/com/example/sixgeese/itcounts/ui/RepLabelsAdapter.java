@@ -143,17 +143,15 @@ public class RepLabelsAdapter extends RecyclerView.Adapter<RepLabelsAdapter.RepL
 
 
 
+
     public class RepLabelsViewHolder extends RecyclerView.ViewHolder{
 
-        private LinearLayout itemContainer_create;
-        private LinearLayout itemContainer;
+
         private TextView txvRepLabel, txvCreateRepLabel;
         private ImageView imgvAddRepLabel;
 
         public RepLabelsViewHolder(View itemView, final Context context) {
             super(itemView);
-            itemContainer = itemView.findViewById(R.id.rep_label_item_container);
-            itemContainer_create = itemView.findViewById(R.id.create_rep_label_container);
             txvRepLabel = itemView.findViewById(R.id.a_rep_label);
             txvCreateRepLabel = itemView.findViewById(R.id.create_rep_label);
             imgvAddRepLabel = itemView.findViewById(R.id.add_rep_label);

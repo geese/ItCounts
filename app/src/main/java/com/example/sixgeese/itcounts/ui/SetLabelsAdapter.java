@@ -142,18 +142,13 @@ public class SetLabelsAdapter extends RecyclerView.Adapter<SetLabelsAdapter.SetL
     }
 
 
-
     public class SetLabelsViewHolder extends RecyclerView.ViewHolder{
 
-        private LinearLayout itemContainer_create;
-        private LinearLayout itemContainer;
         private TextView txvSetLabel, txvCreateSetLabel;
         private ImageView imgvAddSetLabel;
 
         public SetLabelsViewHolder(View itemView, final Context context) {
             super(itemView);
-            itemContainer = itemView.findViewById(R.id.set_label_item_container);
-            itemContainer_create = itemView.findViewById(R.id.create_set_label_container);
             txvSetLabel = itemView.findViewById(R.id.a_set_label);
             txvCreateSetLabel = itemView.findViewById(R.id.create_set_label);
             imgvAddSetLabel = itemView.findViewById(R.id.add_set_label);
